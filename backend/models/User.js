@@ -22,6 +22,10 @@ const UserSchema = new mongoose.Schema({
     enum: ["artist", "eventHost", "user"],
     required: true,
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
   googleId: {
     type: String,
     unique: true,

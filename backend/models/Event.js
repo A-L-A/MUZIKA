@@ -26,7 +26,19 @@ const EventSchema = new mongoose.Schema({
     ref: "Artist",
     required: true,
   },
-  genre: String,
+  eventType: {
+    type: String,
+    enum: [
+      "Open Mic",
+      "Karaoke",
+      "Concert",
+      "Festival",
+      "Party",
+      "Live Music",
+      "Other",
+    ],
+    required: true,
+  },
   ticketPrice: Number,
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -35,6 +47,6 @@ const EventSchema = new mongoose.Schema({
   },
 });
 
-EventSchema.index({ location: "Kigali" });
+EventSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Event", EventSchema);

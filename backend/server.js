@@ -41,6 +41,10 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Muzika Genesis API" });
 });
 
+// AdminSetup route
+const adminSetup = require("./routes/adminSetup");
+app.use("/api/admin-setup", adminSetup);
+
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
