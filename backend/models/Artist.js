@@ -14,7 +14,7 @@ const ArtistSchema = new mongoose.Schema({
   socialLinks: {
     facebook: String,
     instagram: String,
-    twitter: String,
+    tiktok: String,
   },
   events: [
     {

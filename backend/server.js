@@ -41,11 +41,12 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Muzika Genesis API" });
 });
 
-// Define Routes
-app.use("/auth", require("./routes/auth"));
-app.use("/artists", require("./routes/artists"));
-app.use("/events", require("./routes/events"));
-app.use("/admin", require("./routes/admin"));
+// Routes
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/artists", require("./routes/artistRoutes"));
+app.use("/api/events", require("./routes/eventRoutes"));
+
 
 const PORT = process.env.PORT || 5000;
 
