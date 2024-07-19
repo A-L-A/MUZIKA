@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -13,38 +12,21 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: function () {
-      return !this.googleId;
-    }, // Password not required if using Google OAuth
+    required: true,
   },
   userType: {
     type: String,
-    enum: ["artist", "eventHost", "user"],
+    enum: ["user", "artist", "eventHost", "admin"],
+    default: "user",
+  },
+  country: {
+    type: String,
     required: true,
   },
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  googleId: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-  createdAt: {
+  date: {
     type: Date,
     default: Date.now,
   },
 });
-
-UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
-
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
 
 module.exports = mongoose.model("User", UserSchema);

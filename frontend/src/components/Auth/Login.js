@@ -3,6 +3,7 @@ import { Button, TextField, Typography, Box, Divider } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "react-google-login";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,7 +12,7 @@ const Login = () => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,9 +29,18 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    // Implement Google login logic here
-    console.log("Google login not implemented yet");
+  const handleGoogleSuccess = async (response) => {
+    try {
+      await googleLogin(response.tokenId);
+      navigate("/");
+    } catch (err) {
+      setError(err || "An error occurred during Google login.");
+    }
+  };
+
+  const handleGoogleFailure = (error) => {
+    console.error(error);
+    setError("Google login failed. Please try again.");
   };
 
   return (
@@ -72,13 +82,22 @@ const Login = () => {
           OR
         </Typography>
       </Divider>
-      <Button
-        fullWidth
-        variant="outlined"
-        startIcon={<GoogleIcon />}
-        onClick={handleGoogleLogin}>
-        Sign in with Google
-      </Button>
+      <GoogleLogin
+        clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
+        render={(renderProps) => (
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={renderProps.onClick}
+            disabled={renderProps.disabled}>
+            Sign in with Google
+          </Button>
+        )}
+        onSuccess={handleGoogleSuccess}
+        onFailure={handleGoogleFailure}
+        cookiePolicy={"single_host_origin"}
+      />
     </Box>
   );
 };

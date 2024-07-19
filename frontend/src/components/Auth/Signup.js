@@ -13,6 +13,7 @@ import {
 import GoogleIcon from "@mui/icons-material/Google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "react-google-login";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ const Signup = () => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,9 +41,18 @@ const Signup = () => {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    // Implement Google signup logic here
-    console.log("Google signup not implemented yet");
+  const handleGoogleSuccess = async (response) => {
+    try {
+      await googleLogin(response.tokenId);
+      navigate("/");
+    } catch (err) {
+      setError(err || "An error occurred during Google signup.");
+    }
+  };
+
+  const handleGoogleFailure = (error) => {
+    console.error(error);
+    setError("Google signup failed. Please try again.");
   };
 
   return (
@@ -109,13 +119,22 @@ const Signup = () => {
           OR
         </Typography>
       </Divider>
-      <Button
-        fullWidth
-        variant="outlined"
-        startIcon={<GoogleIcon />}
-        onClick={handleGoogleSignup}>
-        Sign up with Google
-      </Button>
+      <GoogleLogin
+        clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
+        render={(renderProps) => (
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={renderProps.onClick}
+            disabled={renderProps.disabled}>
+            Sign up with Google
+          </Button>
+        )}
+        onSuccess={handleGoogleSuccess}
+        onFailure={handleGoogleFailure}
+        cookiePolicy={"single_host_origin"}
+      />
     </Box>
   );
 };

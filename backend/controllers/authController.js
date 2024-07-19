@@ -21,13 +21,14 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ msg: "User already exists" });
     }
     user = new User({ name, email, password, userType });
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    await user.save();
+    await user.save(); // The pre-save middleware will hash the password
     const token = generateToken(user);
     res
       .status(201)
-      .json({ token, user: { id: user._id, name, email, userType } });
+      .json({
+        token,
+        user: { id: user._id, name, email, userType, isAdmin: user.isAdmin },
+      });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
@@ -35,22 +36,36 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  console.log("Login attempt:", { email });
+
   try {
-    const { email, password } = req.body;
     let user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+
+    if (!user) {
+      console.log("Login failed: User not found");
+      return res.status(400).json({ msg: "Invalid Credentials" });
     }
+    const isMatch = await user.comparePassword(password);
+    console.log("Password match:", isMatch ? "Yes" : "No");
+    if (!isMatch) {
+      console.log("Login failed: Password mismatch");
+      return res.status(400).json({ msg: "Invalid Credentials" });
+    }
+
+    // Generate token and send response
     const token = generateToken(user);
-    res.json({
-      token,
-      user: { id: user._id, name: user.name, email, userType: user.userType },
-    });
+    console.log(token);
+  
+    console.log("Login successful");
   } catch (err) {
-    console.error(err.message);
+    console.error("Login error:", err);
     res.status(500).send("Server error");
   }
 };
+ 
+
 
 exports.googleLogin = async (req, res) => {
   try {

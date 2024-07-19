@@ -26,6 +26,11 @@ const EventSchema = new mongoose.Schema({
     ref: "Artist",
     required: true,
   },
+  eventHost: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "EventHost",
+    required: true,
+  },
   eventType: {
     type: String,
     enum: [
@@ -40,11 +45,6 @@ const EventSchema = new mongoose.Schema({
     required: true,
   },
   ticketPrice: Number,
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
 });
 
 EventSchema.index({ location: "2dsphere" });

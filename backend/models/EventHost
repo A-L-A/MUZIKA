@@ -1,0 +1,16 @@
+const mongoose = require("mongoose");
+
+const EventHostSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  description: String,
+  contactInfo: {
+    phone: String,
+    website: String
+  }
+});
+
+module.exports = mongoose.model("EventHost", EventHostSchema);

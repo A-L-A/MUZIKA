@@ -12,16 +12,9 @@ const ArtistSchema = new mongoose.Schema({
   },
   bio: String,
   socialLinks: {
-    facebook: String,
     instagram: String,
-    tiktok: String,
+    facebook: String,
   },
-  events: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Event",
-    },
-  ],
 });
 
 module.exports = mongoose.model("Artist", ArtistSchema);
