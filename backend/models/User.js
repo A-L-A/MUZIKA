@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -16,8 +17,8 @@ const UserSchema = new mongoose.Schema({
   },
   userType: {
     type: String,
-    enum: ["user", "artist", "eventHost", "admin"],
-    default: "user",
+    enum: ["regularUser", "artist", "eventHost", "admin"],
+    required: true,
   },
   country: {
     type: String,
@@ -29,4 +30,12 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("User", UserSchema);
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+export default mongoose.model("User", UserSchema);

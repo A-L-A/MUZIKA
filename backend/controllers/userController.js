@@ -1,7 +1,9 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
 
-exports.getAllUsers = async (req, res) => {
+
+
+export const getAllUsers  = async (req, res) => {
   try {
     const users = await User.find().select("-password");
     res.json(users);
@@ -11,14 +13,14 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.createUser = async (req, res) => {
-  const { name, email, password, userType } = req.body;
+export const createUser = async (req, res) => {
+  const { name, email, password, userType, country } = req.body;
   try {
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ msg: "User already exists" });
     }
-    user = new User({ name, email, password, userType });
+    user = new User({ name, email, password, userType, country });
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
@@ -31,12 +33,12 @@ exports.createUser = async (req, res) => {
   }
 };
 
-exports.updateUser = async (req, res) => {
-  const { name, email, userType } = req.body;
+export const updateUser = async (req, res) => {
+  const { name, email, userType, country } = req.body;
   try {
     let user = await User.findByIdAndUpdate(
       req.params.id,
-      { $set: { name, email, userType } },
+      { $set: { name, email, userType, country } },
       { new: true, runValidators: true }
     );
     if (!user) {
@@ -49,7 +51,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
@@ -62,7 +64,7 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-exports.getUserProfile = async (req, res) => {
+export const getUserProfile  = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) {
@@ -75,12 +77,13 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
-exports.updateUserProfile = async (req, res) => {
-  const { name, email } = req.body;
+
+export const updateUserProfile  = async (req, res) => {
+  const { name, email, country } = req.body;
   try {
     let user = await User.findByIdAndUpdate(
       req.user.id,
-      { $set: { name, email } },
+      { $set: { name, email, country } },
       { new: true, runValidators: true }
     );
     if (!user) {
@@ -93,7 +96,8 @@ exports.updateUserProfile = async (req, res) => {
   }
 };
 
-exports.deleteUserProfile = async (req, res) => {
+
+export const deleteUserProfile  = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.user.id);
     if (!user) {

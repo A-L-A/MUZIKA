@@ -1,18 +1,19 @@
-const express = require("express");
-const router = express.Router();
-const {
+import express from "express";
+import {
   createOrUpdateArtist,
   getAllArtists,
   getArtistById,
   getArtistProfile,
   updateArtistProfile,
   deleteArtistProfile,
-} = require("../controllers/artistController");
-const {
+} from "../controllers/artistController.js";
+import {
   auth,
   isAdmin,
   isArtistOrAdmin,
-} = require("../middleware/authMiddleware");
+} from "../middleware/authMiddleware.js";
+
+const router = express.Router();
 
 router.post("/", auth, isArtistOrAdmin, createOrUpdateArtist);
 router.get("/", getAllArtists);
@@ -23,4 +24,4 @@ router.get("/:id", getArtistById);
 router.put("/:id", auth, isAdmin, updateArtistProfile);
 router.delete("/:id", auth, isAdmin, deleteArtistProfile);
 
-module.exports = router;
+export default router;

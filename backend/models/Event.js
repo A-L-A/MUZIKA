@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const EventSchema = new mongoose.Schema({
   title: {
@@ -33,15 +33,7 @@ const EventSchema = new mongoose.Schema({
   },
   eventType: {
     type: String,
-    enum: [
-      "Open Mic",
-      "Karaoke",
-      "Concert",
-      "Festival",
-      "Party",
-      "Live Music",
-      "Other",
-    ],
+    enum: ["Open Mic", "Karaoke", "Concert", "Festival", "Party", "Live Music"],
     required: true,
   },
   ticketPrice: Number,
@@ -49,4 +41,4 @@ const EventSchema = new mongoose.Schema({
 
 EventSchema.index({ location: "2dsphere" });
 
-module.exports = mongoose.model("Event", EventSchema);
+export default mongoose.model("Event", EventSchema);

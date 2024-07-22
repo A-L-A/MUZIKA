@@ -1,24 +1,23 @@
 import mongoose from "mongoose";
 
-const ArtistSchema = new mongoose.Schema({
+const EventHostSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  genre: {
+  companyName: {
     type: String,
     required: true,
   },
-  bio: {
+  description: {
     type: String,
     required: true,
   },
-  socialLinks: {
-    instagram: String,
-    facebook: String,
-    twitter: String,
+  contactInfo: {
+    phone: String,
+    website: String,
   },
 });
 
-export default mongoose.model("Artist", ArtistSchema);
+export default mongoose.model("EventHost", EventHostSchema);

@@ -1,28 +1,35 @@
-const Event = require("../models/Event");
+import Event from "../models/Event.js";
 
-exports.createEvent = async (req, res) => {
-  const { title, description, date, location, genre, ticketPrice } = req.body;
+export const createEvent  = async (req, res) => {
+  const { title, description, date, location, artist, eventType, ticketPrice } =
+    req.body;
   try {
     const newEvent = new Event({
       title,
       description,
       date,
       location,
-      genre,
+      artist,
+      eventType,
       ticketPrice,
-      createdBy: req.user.id,
+      eventHost: req.user.id,
     });
     const event = await newEvent.save();
-    res.json(event);
+    res.json(
+      await Event.findById(event._id).populate("artist").populate("eventHost")
+    );
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
   }
 };
 
-exports.getAllEvents = async (req, res) => {
+export const getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find().sort({ date: -1 });
+    const events = await Event.find()
+      .sort({ date: -1 })
+      .populate("artist")
+      .populate("eventHost");
     res.json(events);
   } catch (err) {
     console.error(err.message);
@@ -30,7 +37,8 @@ exports.getAllEvents = async (req, res) => {
   }
 };
 
-exports.getEventById = async (req, res) => {
+
+export const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -46,7 +54,8 @@ exports.getEventById = async (req, res) => {
   }
 };
 
-exports.getEventsByUser = async (req, res) => {
+
+export const getEventsByUser = async (req, res) => {
   try {
     const events = await Event.find({ createdBy: req.user.id }).sort({
       date: -1,
@@ -58,7 +67,7 @@ exports.getEventsByUser = async (req, res) => {
   }
 };
 
-exports.updateEvent = async (req, res) => {
+export const updateEvent  = async (req, res) => {
   const { title, description, date, location, genre, ticketPrice } = req.body;
   try {
     let event = await Event.findById(req.params.id);
@@ -83,7 +92,8 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
-exports.deleteEvent = async (req, res) => {
+
+ export const deleteEvent  = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {

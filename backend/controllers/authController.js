@@ -1,9 +1,14 @@
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const { OAuth2Client } = require("google-auth-library");
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import Artist from "../models/Artist.js";
+import EventHost from "../models/EventHost.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const EXPRESS_SECRET = process.env.EXPRESS_SECRET;
+
+let adminCreated = false;
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -13,61 +18,113 @@ const generateToken = (user) => {
   );
 };
 
-exports.signup = async (req, res) => {
+export const signup = async (req, res) => {
   try {
-    const { name, email, password, userType } = req.body;
+    const { name, email, password, userType, country, ...additionalInfo } =
+      req.body;
+
+    if (!name || !email || !password || !userType || !country) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ msg: "User already exists" });
     }
-    user = new User({ name, email, password, userType });
-    await user.save(); // The pre-save middleware will hash the password
-    const token = generateToken(user);
-    res
-      .status(201)
-      .json({
-        token,
-        user: { id: user._id, name, email, userType, isAdmin: user.isAdmin },
+
+    user = new User({ name, email, password, userType, country });
+
+    if (userType === "artist") {
+      const { genre, bio, socialLinks } = additionalInfo;
+      if (!genre || !bio) {
+        return res
+          .status(400)
+          .json({ msg: "Genre and bio are required for artists" });
+      }
+      const artist = new Artist({ user: user._id, genre, bio, socialLinks });
+      await artist.save();
+    } else if (userType === "eventHost") {
+      const { companyName, description, contactInfo } = additionalInfo;
+      if (!companyName || !description) {
+        return res.status(400).json({
+          msg: "Company name and description are required for event hosts",
+        });
+      }
+      const eventHost = new EventHost({
+        user: user._id,
+        companyName,
+        description,
+        contactInfo,
       });
+      await eventHost.save();
+    } else if (userType !== "regularUser") {
+      return res.status(400).json({ msg: "Invalid user type" });
+    }
+
+    await user.save();
+
+    const token = generateToken(user);
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        name,
+        email,
+        userType,
+        country,
+      },
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
   }
 };
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("Login attempt:", { email });
-
   try {
-    let user = await User.findOne({ email });
-
+    const user = await User.findOne({ email });
     if (!user) {
-      console.log("Login failed: User not found");
-      return res.status(400).json({ msg: "Invalid Credentials" });
-    }
-    const isMatch = await user.comparePassword(password);
-    console.log("Password match:", isMatch ? "Yes" : "No");
-    if (!isMatch) {
-      console.log("Login failed: Password mismatch");
+      console.log("No user found with email:", email);
       return res.status(400).json({ msg: "Invalid Credentials" });
     }
 
-    // Generate token and send response
+    console.log("User found:", user.email, user.userType);
+    console.log("Stored password hash:", user.password);
+    console.log("Entered password:", password);
+
+    if (!password) {
+      console.log("Password is undefined or null");
+      return res.status(400).json({ msg: "Password is required" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Password match:", isMatch);
+
+    if (!isMatch) {
+      console.log("Password does not match");
+      return res.status(400).json({ msg: "Invalid Credentials" });
+    }
+
     const token = generateToken(user);
-    console.log(token);
-  
-    console.log("Login successful");
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        userType: user.userType,
+        country: user.country,
+      },
+    });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).send("Server error");
   }
 };
- 
 
-
-exports.googleLogin = async (req, res) => {
+export const googleLogin = async (req, res) => {
   try {
     const { tokenId } = req.body;
     const response = await client.verifyIdToken({
@@ -82,7 +139,7 @@ exports.googleLogin = async (req, res) => {
           name,
           email,
           googleId: response.payload.sub,
-          userType: "user",
+          userType: "regularUser",
         });
         await user.save();
       }
@@ -96,6 +153,39 @@ exports.googleLogin = async (req, res) => {
     }
   } catch (err) {
     console.error(err.message);
+    res.status(500).send("Server error");
+  }
+};
+
+export const setupAdmin = async (req, res) => {
+  console.log("Incoming secret:", req.body.secret);
+  console.log("Stored secret:", process.env.EXPRESS_SECRET);
+
+  const { secret, name, email, password, country } = req.body;
+
+  if (secret !== EXPRESS_SECRET) {
+    return res.status(403).json({ msg: "Invalid secret" });
+  }
+
+  if (adminCreated) {
+    return res.status(403).json({ msg: "Admin already created" });
+  }
+
+  try {
+    const admin = new User({
+      name,
+      email,
+      password,
+      userType: "admin",
+      country,
+    });
+
+    await admin.save();
+    adminCreated = true;
+
+    res.status(201).json({ msg: "Admin created successfully" });
+  } catch (err) {
+    console.error(err);
     res.status(500).send("Server error");
   }
 };

@@ -1,23 +1,23 @@
-// routes/adminRoutes.js
-const express = require("express");
-const router = express.Router();
-const { auth, isAdmin } = require("../middleware/authMiddleware");
-const {
+import express from "express";
+import { auth, isAdmin } from "../middleware/authMiddleware.js";
+import {
   getAllUsers,
   createUser,
   updateUser,
   deleteUser,
-} = require("../controllers/userController");
-const {
+} from "../controllers/userController.js";
+import {
   getAllArtists,
   updateArtist,
   deleteArtist,
-} = require("../controllers/artistController");
-const {
+} from "../controllers/artistController.js";
+import {
   getAllEvents,
   updateEvent,
   deleteEvent,
-} = require("../controllers/eventController");
+} from "../controllers/eventController.js";
+
+const router = express.Router();
 
 // User routes
 router.get("/users", auth, isAdmin, getAllUsers);
@@ -35,4 +35,4 @@ router.get("/events", auth, isAdmin, getAllEvents);
 router.put("/events/:id", auth, isAdmin, updateEvent);
 router.delete("/events/:id", auth, isAdmin, deleteEvent);
 
-module.exports = router;
+export default router;

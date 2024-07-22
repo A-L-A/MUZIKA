@@ -1,6 +1,6 @@
-const Artist = require("../models/Artist");
+import Artist from "../models/Artist.js";
 
-exports.createOrUpdateArtist = async (req, res) => {
+export const createOrUpdateArtist  = async (req, res) => {
   const { genre, bio, socialLinks } = req.body;
   try {
     let artist = await Artist.findOne({ user: req.user.id });
@@ -9,7 +9,7 @@ exports.createOrUpdateArtist = async (req, res) => {
         { user: req.user.id },
         { $set: { genre, bio, socialLinks } },
         { new: true }
-      );
+      ).populate("user", ["name", "email", "country"]);
     } else {
       artist = new Artist({
         user: req.user.id,
@@ -18,6 +18,11 @@ exports.createOrUpdateArtist = async (req, res) => {
         socialLinks,
       });
       await artist.save();
+      artist = await Artist.findById(artist._id).populate("user", [
+        "name",
+        "email",
+        "country",
+      ]);
     }
     res.json(artist);
   } catch (err) {
@@ -26,9 +31,13 @@ exports.createOrUpdateArtist = async (req, res) => {
   }
 };
 
-exports.getAllArtists = async (req, res) => {
+export const getAllArtists  = async (req, res) => {
   try {
-    const artists = await Artist.find().populate("user", ["name", "email"]);
+    const artists = await Artist.find().populate("user", [
+      "name",
+      "email",
+      "country",
+    ]);
     res.json(artists);
   } catch (err) {
     console.error(err.message);
@@ -36,7 +45,8 @@ exports.getAllArtists = async (req, res) => {
   }
 };
 
-exports.getArtistById = async (req, res) => {
+
+export const getArtistById  = async (req, res) => {
   try {
     const artist = await Artist.findById(req.params.id).populate("user", [
       "name",
@@ -52,7 +62,8 @@ exports.getArtistById = async (req, res) => {
   }
 };
 
-exports.getArtistProfile = async (req, res) => {
+
+export const getArtistProfile  = async (req, res) => {
   try {
     const artist = await Artist.findOne({ user: req.user.id }).populate(
       "user",
@@ -68,7 +79,8 @@ exports.getArtistProfile = async (req, res) => {
   }
 };
 
-exports.updateArtist = async (req, res) => {
+
+export const updateArtist = async (req, res) => {
   // For admin use
   const { genre, bio, socialLinks } = req.body;
   try {
@@ -88,7 +100,8 @@ exports.updateArtist = async (req, res) => {
   }
 };
 
-exports.deleteArtist = async (req, res) => {
+
+export const deleteArtist  = async (req, res) => {
   // For admin use
   try {
     const artist = await Artist.findById(req.params.id);
@@ -103,23 +116,9 @@ exports.deleteArtist = async (req, res) => {
   }
 };
 
-exports.getArtistProfile = async (req, res) => {
-  try {
-    const artist = await Artist.findOne({ user: req.user.id }).populate(
-      "user",
-      ["name", "email", "country"]
-    );
-    if (!artist) {
-      return res.status(404).json({ msg: "Artist profile not found" });
-    }
-    res.json(artist);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
-  }
-};
 
-exports.updateArtistProfile = async (req, res) => {
+
+export const updateArtistProfile  = async (req, res) => {
   const { genre, bio, socialLinks } = req.body;
   try {
     let artist = await Artist.findOne({ user: req.user.id });
@@ -138,7 +137,8 @@ exports.updateArtistProfile = async (req, res) => {
   }
 };
 
-exports.deleteArtistProfile = async (req, res) => {
+
+export const deleteArtistProfile  = async (req, res) => {
   try {
     const artist = await Artist.findOneAndDelete({ user: req.user.id });
     if (!artist) {
