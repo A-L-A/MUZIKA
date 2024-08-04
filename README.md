@@ -11,6 +11,7 @@
 3. Start the servers:
 -cd frontend && npm start
 -cd backend && npm start
-4. Visit `http://localhost:3000` and groove to the beat!
+4. Visit `http://localhost:3000` -frontend
+5.Visit `http://localhost:5000` -backend
 
 Check out our live site and start discovering events: [MUZIKA Live](https://your-deployed-url-here.com)
