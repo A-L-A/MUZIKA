@@ -1,13 +1,13 @@
 import Artist from "../models/Artist.js";
 
-export const createOrUpdateArtist  = async (req, res) => {
-  const { genre, bio, socialLinks } = req.body;
+export const createOrUpdateArtist = async (req, res) => {
+  const { genre, bio, socialLinks, image } = req.body;
   try {
     let artist = await Artist.findOne({ user: req.user.id });
     if (artist) {
       artist = await Artist.findOneAndUpdate(
         { user: req.user.id },
-        { $set: { genre, bio, socialLinks } },
+        { $set: { genre, bio, socialLinks, image } },
         { new: true }
       ).populate("user", ["name", "email", "country"]);
     } else {
@@ -16,6 +16,7 @@ export const createOrUpdateArtist  = async (req, res) => {
         genre,
         bio,
         socialLinks,
+        image,
       });
       await artist.save();
       artist = await Artist.findById(artist._id).populate("user", [
@@ -30,6 +31,29 @@ export const createOrUpdateArtist  = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
+export const updateArtist = async (req, res) => {
+  const { genre, bio, socialLinks, image } = req.body;
+  try {
+    let artist = await Artist.findById(req.params.id);
+    if (!artist) {
+      return res.status(404).json({ msg: "Artist not found" });
+    }
+    artist = await Artist.findByIdAndUpdate(
+      req.params.id,
+      { $set: { genre, bio, socialLinks, image } },
+      { new: true }
+    ).populate("user", ["name", "email", "country"]); // Add populate here
+    res.json(artist);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(404).json({ msg: "Artist not found" });
+    }
+    res.status(500).send("Server Error");
+  }
+};
+
 
 export const getAllArtists  = async (req, res) => {
   try {
@@ -84,27 +108,6 @@ export const getArtistProfile = async (req, res) => {
   }
 };
 
-export const updateArtist = async (req, res) => {
-  const { genre, bio, socialLinks } = req.body;
-  try {
-    let artist = await Artist.findById(req.params.id);
-    if (!artist) {
-      return res.status(404).json({ msg: "Artist not found" });
-    }
-    artist = await Artist.findByIdAndUpdate(
-      req.params.id,
-      { $set: { genre, bio, socialLinks } },
-      { new: true }
-    ).populate("user", ["name", "email", "country"]); // Add populate here
-    res.json(artist);
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind === "ObjectId") {
-      return res.status(404).json({ msg: "Artist not found" });
-    }
-    res.status(500).send("Server Error");
-  }
-};
 
 export const deleteArtist = async (req, res) => {
   try {

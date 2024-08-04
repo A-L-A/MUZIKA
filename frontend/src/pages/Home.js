@@ -6,6 +6,7 @@ import {
   Grid,
   Button,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import Hero from "../components/Home/Hero";
@@ -18,6 +19,7 @@ const Home = () => {
   const [featuredArtists, setFeaturedArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,14 +65,18 @@ const Home = () => {
       <Hero />
 
       {/* Upcoming Events Section */}
-      <Box sx={{ bgcolor: "#f5f5f5", py: 8 }}>
+      <Box sx={{ bgcolor: theme.palette.background.paper, py: 8 }}>
         <Container maxWidth="lg">
           <Typography
             variant="h4"
             component="h2"
             gutterBottom
             align="center"
-            sx={{ mb: 4, fontWeight: "bold" }}>
+            sx={{
+              mb: 4,
+              fontWeight: "bold",
+              color: theme.palette.text.primary,
+            }}>
             Upcoming Events
           </Typography>
           <Grid container spacing={4}>
@@ -93,14 +99,18 @@ const Home = () => {
       </Box>
 
       {/* Featured Artists Section */}
-      <Box sx={{ bgcolor: "white", py: 8 }}>
+      <Box sx={{ bgcolor: theme.palette.background.default, py: 8 }}>
         <Container maxWidth="lg">
           <Typography
             variant="h4"
             component="h2"
             gutterBottom
             align="center"
-            sx={{ mb: 4, fontWeight: "bold" }}>
+            sx={{
+              mb: 4,
+              fontWeight: "bold",
+              color: theme.palette.text.primary,
+            }}>
             Featured Artists
           </Typography>
           <Grid container spacing={4}>

@@ -2,8 +2,8 @@ import React from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import HomeIcon from "@mui/icons-material/Home";
-import ThemeToggleButton from "./ThemeToggleButton"; // Adjust the path if needed
+import MicExternalOnIcon from "@mui/icons-material/MicExternalOn";
+import ThemeToggleButton from "./ThemeToggleButton"; 
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -20,8 +20,8 @@ const Navbar = () => {
             color: "inherit",
             textDecoration: "none",
           }}>
-          <HomeIcon sx={{ mr: 1 }} />
-          <Typography variant="h6">Muzika</Typography>
+          <MicExternalOnIcon sx={{ mr: 1 }} />
+          <Typography variant="h5">Muzika</Typography>
         </Box>
         <Box sx={{ flexGrow: 1 }} />
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

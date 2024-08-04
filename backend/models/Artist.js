@@ -19,6 +19,9 @@ const ArtistSchema = new mongoose.Schema({
     facebook: String,
     twitter: String,
   },
+  image: {
+    type: String
+  },
 });
 
 export default mongoose.model("Artist", ArtistSchema);

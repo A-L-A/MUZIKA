@@ -11,10 +11,9 @@ import {
   Box,
   CircularProgress,
   Button,
+  useTheme,
 } from "@mui/material";
-
 import EventMap from "../components/Eventss/EventMap";
-import EventList from "../components/Eventss/EventList";
 import EventsCatalogue from "../components/Eventss/EventsCatalogue";
 import CreateEventForm from "../components/Eventss/CreateEventForm";
 import { getEvents } from "../services/api";
@@ -31,28 +30,29 @@ const Events = () => {
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const theme = useTheme();
 
   useEffect(() => {
-   const fetchEvents = async () => {
-     try {
-       setLoading(true);
-       const response = await getEvents();
-       const data = response.data.map((event) => ({
-         ...event,
-         location: event.location || {
-           type: "Point",
-           coordinates: [0, 0], 
-         },
-       }));
-       setEvents(data);
-       setFilteredEvents(data);
-     } catch (error) {
-       console.error("Error fetching events:", error);
-       setError("Failed to load events. Please try again later.");
-     } finally {
-       setLoading(false);
-     }
-   };
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await getEvents();
+        const data = response.data.map((event) => ({
+          ...event,
+          location: event.location || {
+            type: "Point",
+            coordinates: [0, 0], // Default coordinates if location is not available
+          },
+        }));
+        setEvents(data);
+        setFilteredEvents(data);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setError("Failed to load events. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchEvents();
   }, []);
@@ -122,18 +122,25 @@ const Events = () => {
   }
 
   return (
-    <Container maxWidth="lg">
-      {/* <Typography variant="h2" component="h1" gutterBottom>
-        Events
-      </Typography> */}
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={handleLocateEventsNearMe}
-        sx={{ mb: 3, mr: 2 }}>
-        Locate Events Near Me
-      </Button>
-      <Box mb={3}>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Box
+        sx={{
+          bgcolor: theme.palette.background.paper,
+          py: 4,
+          px: 2,
+          borderRadius: 2,
+          mb: 4,
+        }}>
+        <Typography variant="h2" component="h1" gutterBottom align="center">
+          Events
+        </Typography>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleLocateEventsNearMe}
+          sx={{ mb: 3, mr: 2 }}>
+          Locate Events Near Me
+        </Button>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <TextField
@@ -141,12 +148,7 @@ const Events = () => {
               label="Search events, artists, or venues"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              InputProps={{
-                style: { padding: "10px" },
-              }}
+              InputLabelProps={{ shrink: true }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -156,23 +158,16 @@ const Events = () => {
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              InputProps={{
-                style: { padding: "10px" },
-              }}
+              InputLabelProps={{ shrink: true }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
-              <InputLabel id="event-type-label">Event Type</InputLabel>
+              <InputLabel>Event Type</InputLabel>
               <Select
-                labelId="event-type-label"
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
-                label="Event Type"
-                sx={{ padding: "10px" }}>
+                label="Event Type">
                 <MenuItem value="">All</MenuItem>
                 <MenuItem value="Concert">Concert</MenuItem>
                 <MenuItem value="Festival">Festival</MenuItem>
@@ -185,19 +180,32 @@ const Events = () => {
           </Grid>
         </Grid>
       </Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <EventMap
-            events={filteredEvents}
-            userLocation={userLocation}
-            onLocationSelect={handleLocationSelect}
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <EventList events={filteredEvents.slice(0, 3)} />
-        </Grid>
-      </Grid>
-      <EventsCatalogue events={filteredEvents} />
+
+      <Box
+        sx={{
+          bgcolor: theme.palette.background.default,
+          py: 4,
+          px: 2,
+          borderRadius: 2,
+          mb: 4,
+        }}>
+        <EventMap
+          events={filteredEvents}
+          userLocation={userLocation}
+          onLocationSelect={handleLocationSelect}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          bgcolor: theme.palette.background.paper,
+          py: 4,
+          px: 2,
+          borderRadius: 2,
+        }}>
+        <EventsCatalogue events={filteredEvents} />
+      </Box>
+
       {["admin", "eventHost", "artist"].includes(user?.userType) && (
         <Button
           variant="contained"

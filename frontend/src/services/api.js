@@ -2,6 +2,21 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL
 
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+});
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["x-auth-token"] = token;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Auth
 export const getCurrentUser = () => axios.get(`${API_URL}/users/profile`);
 export const login = (email, password) =>

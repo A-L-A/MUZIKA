@@ -5,14 +5,27 @@ const EventSchema = new mongoose.Schema({
   description: String,
   date: { type: Date, required: true },
   address: { type: String, required: true },
-  artist: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Artist",
-    required: true,
+  coordinates: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
   },
+  artists: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  artistsNames: [String],
   eventHost: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "EventHost",
+    ref: "User",
     required: true,
   },
   eventType: {
@@ -45,5 +58,7 @@ const EventSchema = new mongoose.Schema({
   currency: { type: String, required: true },
   image: { type: String, required: true },
 });
+
+EventSchema.index({ coordinates: "2dsphere" });
 
 export const Event = mongoose.model("Event", EventSchema);

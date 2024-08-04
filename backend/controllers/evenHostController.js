@@ -1,6 +1,7 @@
 import EventHost from "../models/EventHost.js";
 import User from "../models/User.js";
 
+
 export const createOrUpdateEventHost = async (req, res) => {
   try {
     let eventHost = await EventHost.findOne({ user: req.user._id });

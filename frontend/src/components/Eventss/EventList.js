@@ -28,7 +28,10 @@ const EventList = ({ events }) => {
                     {event.eventType || "Event type not specified"}
                   </Typography>
                   <Typography variant="body2">
-                    Artist: {event.artist?.name || "Unknown"}
+                    Artists:{" "}
+                    {event.artistsNames
+                      ? event.artistsNames.join(", ")
+                      : "Not specified"}
                   </Typography>
                 </Box>
               </React.Fragment>

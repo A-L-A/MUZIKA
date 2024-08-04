@@ -1,94 +1,104 @@
 import React, { useState } from "react";
 import {
-  Typography,
-  Card,
-  CardContent,
-  CardMedia,
-  Box,
-  IconButton,
   Grid,
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import EventCard from "./EventCard";
 
 const EventsCatalogue = ({ events }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const eventsPerPage = 5;
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const handlePrevious = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : events.length - eventsPerPage
-    );
+  const handleOpenDialog = (event) => {
+    setSelectedEvent(event);
   };
 
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex < events.length - eventsPerPage ? prevIndex + 1 : 0
-    );
+  const handleCloseDialog = () => {
+    setSelectedEvent(null);
   };
 
   return (
-    <Box mt={4} position="relative">
+    <Box mt={4}>
       <Typography variant="h4" gutterBottom>
         Events Catalogue
       </Typography>
-      <Grid container spacing={2}>
-        {events
-          .slice(currentIndex, currentIndex + eventsPerPage)
-          .map((event) => (
-            <Grid item xs={12} key={event._id}>
-              <Card sx={{ display: "flex", height: 140 }}>
-                <CardMedia
-                  component="img"
-                  sx={{ width: 140 }}
-                  image={event.image || "https://source.unsplash.com/random"}
-                  alt={event.title}
-                />
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                  }}>
-                  <CardContent sx={{ flex: "1 0 auto" }}>
-                    <Typography component="div" variant="h6">
-                      {event.title}
-                    </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      color="text.secondary"
-                      component="div">
-                      {new Date(event.date).toLocaleDateString()}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {event.eventType} | {event.address}
-                    </Typography>
-                  </CardContent>
-                </Box>
-              </Card>
-            </Grid>
-          ))}
+      <Grid container spacing={3}>
+        {events.map((event) => (
+          <Grid item xs={12} sm={6} md={4} key={event._id}>
+            <EventCard
+              event={event}
+              onClickMore={() => handleOpenDialog(event)}
+            />
+          </Grid>
+        ))}
       </Grid>
-      <IconButton
-        onClick={handlePrevious}
-        sx={{
-          position: "absolute",
-          left: -20,
-          top: "50%",
-          transform: "translateY(-50%)",
-        }}>
-        <ArrowBackIosNewIcon />
-      </IconButton>
-      <IconButton
-        onClick={handleNext}
-        sx={{
-          position: "absolute",
-          right: -20,
-          top: "50%",
-          transform: "translateY(-50%)",
-        }}>
-        <ArrowForwardIosIcon />
-      </IconButton>
+      <Dialog
+        open={!!selectedEvent}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth>
+        {selectedEvent && (
+          <>
+            <DialogTitle>{selectedEvent.title}</DialogTitle>
+            <DialogContent>
+              <Typography variant="body1" paragraph>
+                <strong>Date:</strong>{" "}
+                {new Date(selectedEvent.date).toLocaleString()}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <strong>Description:</strong> {selectedEvent.description}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <strong>Address:</strong> {selectedEvent.address}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <strong>Event Type:</strong> {selectedEvent.eventType}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <strong>Music Genre:</strong> {selectedEvent.musicGenre}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <strong>Ticket Price:</strong> {selectedEvent.ticketPrice}{" "}
+                {selectedEvent.currency}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <strong>Artists:</strong>{" "}
+                {selectedEvent.artistsNames
+                  ? selectedEvent.artistsNames.join(", ")
+                  : "Not specified"}
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog} color="primary">
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  const osmUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${selectedEvent.coordinates.coordinates[1]}%2C${selectedEvent.coordinates.coordinates[0]}`;
+                  window.open(osmUrl, "_blank");
+                }}
+                color="primary">
+                OpenStreetMap Directions
+              </Button>
+              <Button
+                onClick={() => {
+                  const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                    selectedEvent.address
+                  )}`;
+                  window.open(googleUrl, "_blank");
+                }}
+                color="primary">
+                Google Maps Directions
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 };

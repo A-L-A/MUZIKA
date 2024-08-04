@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Box } from "@mui/material";
+import { Box, Container } from "@mui/material"; // Added Container import
 import ThemeProviderComponent from "./context/themeContext";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
@@ -71,17 +71,20 @@ function AppContent() {
 }
 
 function App() {
-   console.log("Google Client ID:", process.env.REACT_APP_GOOGLE_CLIENT_ID);
-   console.log("Current origin:", window.location.origin);
+  console.log("Google Client ID:", process.env.REACT_APP_GOOGLE_CLIENT_ID);
+  console.log("Current origin:", window.location.origin);
+
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-      <ThemeProviderComponent>
-        <CssBaseline />
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ThemeProviderComponent>
-    </GoogleOAuthProvider>
+    <Container maxWidth={false} disableGutters>
+      <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+        <ThemeProviderComponent>
+          <CssBaseline />
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </ThemeProviderComponent>
+      </GoogleOAuthProvider>
+    </Container>
   );
 }
 
