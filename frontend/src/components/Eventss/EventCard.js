@@ -31,6 +31,19 @@ const EventCard = ({ event }) => {
     setOpen(false);
   };
 
+  const openGoogleMaps = () => {
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+      event.address
+    )}`;
+    window.open(googleMapsUrl, "_blank");
+  };
+
+  const openOpenStreetMap = () => {
+    const [longitude, latitude] = event.coordinates.coordinates;
+    const openStreetMapUrl = `https://www.openstreetmap.org/directions?engine=osrm_car&route=;${latitude},${longitude}`;
+    window.open(openStreetMapUrl, "_blank");
+  };
+
   return (
     <>
       <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -120,13 +133,17 @@ const EventCard = ({ event }) => {
         <DialogActions>
           <Button onClick={handleClose}>Close</Button>
           <Button
-            onClick={() => {
-              const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                event.address
-              )}`;
-              window.open(googleMapsUrl, "_blank");
-            }}>
-            Get Directions
+            onClick={openGoogleMaps}
+            variant="contained"
+            color="primary"
+            sx={{ mr: 1 }}>
+            Google Maps
+          </Button>
+          <Button
+            onClick={openOpenStreetMap}
+            variant="contained"
+            color="secondary">
+            OpenStreetMap
           </Button>
         </DialogActions>
       </Dialog>
