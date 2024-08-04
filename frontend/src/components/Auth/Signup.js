@@ -10,12 +10,12 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import GoogleIcon from "@mui/icons-material/Google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { GoogleLogin } from "react-google-login";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Signup = () => {
+  const { setUser, register, googleLogin } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,7 +24,6 @@ const Signup = () => {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { register, googleLogin } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,24 +33,38 @@ const Signup = () => {
     e.preventDefault();
     setError("");
     try {
-      await register(formData);
+      const user = await register(formData);
+      setUser(user);
       navigate("/");
     } catch (err) {
-      setError(err || "An error occurred during signup.");
+      console.error("Error during signup:", err);
+      setError(err.response?.data?.msg || "An error occurred during signup.");
     }
   };
 
-  const handleGoogleSuccess = async (response) => {
+  const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      await googleLogin(response.tokenId);
-      navigate("/");
+      const response = await googleLogin({
+        tokenId: credentialResponse.credential,
+      });
+      if (response.isNewUser) {
+        navigate("/complete-signup", {
+          state: { tempToken: response.token },
+        });
+      } else {
+        setUser(response.user);
+        localStorage.setItem("token", response.token);
+        navigate("/profile");
+      }
     } catch (err) {
-      setError(err || "An error occurred during Google signup.");
+      console.error("Google login error:", err);
+      setError(
+        err.response?.data?.msg || "An error occurred during Google login."
+      );
     }
   };
 
-  const handleGoogleFailure = (error) => {
-    console.error(error);
+  const handleGoogleError = () => {
     setError("Google signup failed. Please try again.");
   };
 
@@ -106,7 +119,7 @@ const Signup = () => {
           value={formData.userType}
           label="User Type"
           onChange={handleChange}>
-          <MenuItem value="user">User</MenuItem>
+          <MenuItem value="user">Regular User</MenuItem>
           <MenuItem value="artist">Artist</MenuItem>
           <MenuItem value="eventHost">Event Host</MenuItem>
         </Select>
@@ -119,22 +132,12 @@ const Signup = () => {
           OR
         </Typography>
       </Divider>
-      <GoogleLogin
-        clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
-        render={(renderProps) => (
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<GoogleIcon />}
-            onClick={renderProps.onClick}
-            disabled={renderProps.disabled}>
-            Sign up with Google
-          </Button>
-        )}
-        onSuccess={handleGoogleSuccess}
-        onFailure={handleGoogleFailure}
-        cookiePolicy={"single_host_origin"}
-      />
+      <Box sx={{ width: "100%" }}>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+        />
+      </Box>
     </Box>
   );
 };

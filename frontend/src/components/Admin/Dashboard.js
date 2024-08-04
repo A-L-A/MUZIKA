@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Button, TextField, Box } from "@mui/material";
+import { Container, Typography, Box, Tabs, Tab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import UserManagement from "./UserManagement";
+import ArtistManagement from "./ArtistManagement";
+import EventManagement from "./EventManagement";
+import EventHostManagement from "./EventHostManagement";
+import * as api from "../../services/api";
 
 const Dashboard = () => {
+  const [tabValue, setTabValue] = useState(0);
   const [users, setUsers] = useState([]);
   const [artists, setArtists] = useState([]);
   const [events, setEvents] = useState([]);
-  const [newUser, setNewUser] = useState({ name: "", email: "", userType: "" });
+  const [eventHosts, setEventHosts] = useState([]);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -14,116 +21,93 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const usersRes = await axios.get("/api/admin/users");
+      const [usersRes, artistsRes, eventsRes, eventHostsRes] = await Promise.all([
+        api.getAllUsers(),
+        api.getAllArtists(),
+        api.getAllEvents(),
+        api.getEventHosts(),
+      ]);
+
       setUsers(usersRes.data);
-
-      const artistsRes = await axios.get("/api/admin/artists");
       setArtists(artistsRes.data);
-
-      const eventsRes = await axios.get("/api/admin/events");
       setEvents(eventsRes.data);
+      setEventHosts(eventHostsRes.data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleNewUserChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post("/api/admin/users", newUser);
-      setNewUser({ name: "", email: "", userType: "" });
-      fetchData();
-    } catch (err) {
-      console.error(err);
-    }
+  const handleDelete = (item, type) => {
+    setItemToDelete({ item, type });
+    setDeleteConfirmOpen(true);
   };
 
-  const handleDeleteUser = async (id) => {
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
     try {
-      await axios.delete(`/api/admin/users/${id}`);
-      fetchData();
+      const { item, type } = itemToDelete;
+      switch (type) {
+        case "user":
+          await api.deleteUser(item._id);
+          setUsers(users.filter((user) => user._id !== item._id));
+          break;
+        case "artist":
+          await api.adminDeleteArtist(item._id);
+          setArtists(artists.filter((artist) => artist._id !== item._id));
+          break;
+        case "event":
+          await api.adminDeleteEvent(item._id);
+          setEvents(events.filter((event) => event._id !== item._id));
+          break;
+        case "eventHost":
+          await api.deleteEventHost(item._id);
+          setEventHosts(eventHosts.filter((host) => host._id !== item._id));
+          break;
+        default:
+          break;
+      }
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setItemToDelete(null);
     }
   };
 
   return (
-    <div>
-      <h1>Admin Dashboard</h1>
-      <h2>Create New User</h2>
-      <Box
-        component="form"
-        onSubmit={handleCreateUser}
-        noValidate
-        sx={{ mt: 1 }}>
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="name"
-          label="Name"
-          name="name"
-          value={newUser.name}
-          onChange={handleNewUserChange}
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="email"
-          label="Email Address"
-          name="email"
-          value={newUser.email}
-          onChange={handleNewUserChange}
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="userType"
-          label="User Type"
-          name="userType"
-          value={newUser.userType}
-          onChange={handleNewUserChange}
-        />
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}>
-          Create User
-        </Button>
+    <Container maxWidth="lg">
+      <Typography variant="h2" component="h1" gutterBottom>
+        Admin Dashboard
+      </Typography>
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+        <Tabs value={tabValue} onChange={handleTabChange} aria-label="admin dashboard tabs">
+          <Tab label="Users" />
+          <Tab label="Artists" />
+          <Tab label="Events" />
+          <Tab label="Event Hosts" />
+        </Tabs>
       </Box>
-      <h2>Users</h2>
-      <ul>
-        {users.map((user) => (
-          <li key={user._id}>
-            {user.name} - {user.email} - {user.userType}
-            <Button onClick={() => handleDeleteUser(user._id)}>Delete</Button>
-          </li>
-        ))}
-      </ul>
-      <h2>Artists</h2>
-      <ul>
-        {artists.map((artist) => (
-          <li key={artist._id}>
-            {artist.user.name} - {artist.genre}
-          </li>
-        ))}
-      </ul>
-      <h2>Events</h2>
-      <ul>
-        {events.map((event) => (
-          <li key={event._id}>
-            {event.title} - {event.date}
-          </li>
-        ))}
-      </ul>
-    </div>
+      {tabValue === 0 && <UserManagement users={users} onDelete={handleDelete} />}
+      {tabValue === 1 && <ArtistManagement artists={artists} onDelete={handleDelete} />}
+      {tabValue === 2 && <EventManagement events={events} onDelete={handleDelete} />}
+      {tabValue === 3 && <EventHostManagement eventHosts={eventHosts} onDelete={handleDelete} />}
+
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this item? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
 

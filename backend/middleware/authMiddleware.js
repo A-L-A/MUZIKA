@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Artist from "../models/Artist.js";
+import { Event } from "../models/Event.js"; // Named import for Event
 
 export const auth = async function (req, res, next) {
   const token = req.header("x-auth-token") || req.header("Authorization");
@@ -10,7 +12,7 @@ export const auth = async function (req, res, next) {
 
   try {
     let decoded;
-    if (token.startsWith("Bearer ")) {
+    if (typeof token === "string" && token.startsWith("Bearer ")) {
       decoded = jwt.verify(token.slice(7), process.env.JWT_SECRET);
     } else {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -35,28 +37,46 @@ export const isAdmin = function (req, res, next) {
   }
 };
 
-export const isArtistOrAdmin = function (req, res, next) {
-  if (
-    req.user &&
-    (req.user.userType === "artist" || req.user.userType === "admin")
-  ) {
-    next();
-  } else {
-    res
-      .status(403)
-      .json({ msg: "Access denied. Artist or admin privileges required." });
+export const isArtistOrAdmin = async function (req, res, next) {
+  if (req.user.userType === "admin") {
+    return next();
   }
+
+  if (req.user.userType === "artist") {
+    const artistId = req.params.id;
+    if (artistId) {
+      const artist = await Artist.findById(artistId);
+      if (artist && artist.user.toString() === req.user._id.toString()) {
+        return next();
+      }
+    } else {
+      return next();
+    }
+  }
+
+  res.status(403).json({
+    msg: "Access denied. Artist can only modify their own profile or admin privileges required.",
+  });
 };
 
-export const isEventHostOrAdmin = function (req, res, next) {
-  if (
-    req.user &&
-    (req.user.userType === "eventHost" || req.user.userType === "admin")
-  ) {
-    next();
-  } else {
-    res
-      .status(403)
-      .json({ msg: "Access denied. Event host or admin privileges required." });
+export const isEventHostOrAdmin = async function (req, res, next) {
+  if (req.user.userType === "admin") {
+    return next();
   }
+
+  if (req.user.userType === "eventHost") {
+    const eventId = req.params.id;
+    if (eventId) {
+      const event = await Event.findById(eventId);
+      if (event && event.eventHost.toString() === req.user._id.toString()) {
+        return next();
+      }
+    } else {
+      return next();
+    }
+  }
+
+  res.status(403).json({
+    msg: "Access denied. Event host can only modify their own events or admin privileges required.",
+  });
 };

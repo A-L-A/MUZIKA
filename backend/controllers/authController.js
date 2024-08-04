@@ -45,13 +45,18 @@ export const signup = async (req, res) => {
       await artist.save();
     } else if (userType === "eventHost") {
       const { companyName, description, contactInfo } = additionalInfo;
-      if (!companyName || !description) {
+      if (!companyName || !description || !contactInfo) {
         return res.status(400).json({
-          msg: "Company name and description are required for event hosts",
+          msg: "Company name, description, and contact info are required for event hosts",
         });
       }
       const eventHost = new EventHost({
         user: user._id,
+        name,
+        email,
+        password,
+        userType,
+        country,
         companyName,
         description,
         contactInfo,
@@ -60,7 +65,6 @@ export const signup = async (req, res) => {
     } else if (userType !== "regularUser") {
       return res.status(400).json({ msg: "Invalid user type" });
     }
-
     await user.save();
 
     const token = generateToken(user);
@@ -86,24 +90,16 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      console.log("No user found with email:", email);
       return res.status(400).json({ msg: "Invalid Credentials" });
     }
 
-    console.log("User found:", user.email, user.userType);
-    console.log("Stored password hash:", user.password);
-    console.log("Entered password:", password);
-
     if (!password) {
-      console.log("Password is undefined or null");
       return res.status(400).json({ msg: "Password is required" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match:", isMatch);
 
     if (!isMatch) {
-      console.log("Password does not match");
       return res.status(400).json({ msg: "Invalid Credentials" });
     }
 
@@ -127,30 +123,126 @@ export const login = async (req, res) => {
 export const googleLogin = async (req, res) => {
   try {
     const { tokenId } = req.body;
+
+    if (!tokenId) {
+      return res.status(400).json({ msg: "Token ID is required" });
+    }
+
     const response = await client.verifyIdToken({
       idToken: tokenId,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+
     const { email_verified, name, email } = response.payload;
-    if (email_verified) {
-      let user = await User.findOne({ email });
-      if (!user) {
-        user = new User({
-          name,
-          email,
-          googleId: response.payload.sub,
-          userType: "regularUser",
-        });
-        await user.save();
-      }
+
+    if (!email_verified) {
+      return res.status(400).json({ msg: "Google email not verified" });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User already exists
       const token = generateToken(user);
-      res.json({
+      return res.json({
+        isNewUser: false,
         token,
-        user: { id: user._id, name, email, userType: user.userType },
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          userType: user.userType,
+          country: user.country,
+        },
       });
     } else {
-      return res.status(400).json({ msg: "Google login failed. Try again." });
+      // Create a new user
+      user = new User({
+        name,
+        email,
+        googleId: response.payload.sub,
+        userType: "regularUser",
+        password: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
+      });
+      await user.save();
+
+      const token = generateToken(user);
+      return res.json({
+        isNewUser: true,
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          userType: user.userType,
+          country: user.country,
+        },
+      });
     }
+  } catch (err) {
+    console.error("Google login error:", err);
+    if (err.message.includes("jwt.split is not a function")) {
+      return res.status(400).json({ msg: "Invalid Google token" });
+    }
+    res.status(500).json({ msg: "Server error during Google login" });
+  }
+};
+
+export const completeGoogleSignup = async (req, res) => {
+  try {
+    const { tempToken, userType, country } = req.body;
+    const decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+
+    let user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      user = new User({
+        name: decoded.name,
+        email: decoded.email,
+        userType,
+        country,
+        password: await bcrypt.hash(Math.random().toString(36).slice(-8), 10),
+      });
+      await user.save();
+    } else {
+      user.userType = userType;
+      user.country = country;
+      await user.save();
+    }
+
+    if (userType === "artist") {
+      let artist = await Artist.findOne({ user: user._id });
+      if (!artist) {
+        artist = new Artist({
+          user: user._id,
+          genre: "Not specified",
+          bio: "New artist",
+        });
+        await artist.save();
+      }
+    } else if (userType === "eventHost") {
+      let eventHost = await EventHost.findOne({ user: user._id });
+      if (!eventHost) {
+        eventHost = new EventHost({
+          user: user._id,
+          companyName: "Not specified",
+          description: "New event host",
+          contactInfo: { phone: "Not specified", website: "Not specified" },
+        });
+        await eventHost.save();
+      }
+    }
+
+    const token = generateToken(user);
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        userType: user.userType,
+        country: user.country,
+      },
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
@@ -158,9 +250,6 @@ export const googleLogin = async (req, res) => {
 };
 
 export const setupAdmin = async (req, res) => {
-  console.log("Incoming secret:", req.body.secret);
-  console.log("Stored secret:", process.env.EXPRESS_SECRET);
-
   const { secret, name, email, password, country } = req.body;
 
   if (secret !== EXPRESS_SECRET) {

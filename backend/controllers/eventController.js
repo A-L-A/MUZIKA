@@ -1,19 +1,51 @@
-import Event from "../models/Event.js";
+import { Event } from "../models/Event.js"; 
 
-export const createEvent  = async (req, res) => {
-  const { title, description, date, location, artist, eventType, ticketPrice } =
-    req.body;
+export const createEvent = async (req, res) => {
+  const {
+    title,
+    description,
+    date,
+    address,
+    artist,
+    eventType,
+    musicGenre,
+    otherMusicGenre,
+    ticketPrice,
+    currency,
+    image,
+  } = req.body;
+
   try {
+    // Validate required fields
+    if (
+      !title ||
+      !date ||
+      !address ||
+      !artist ||
+      !eventType ||
+      !musicGenre ||
+      !ticketPrice ||
+      !currency ||
+      !image
+    ) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
     const newEvent = new Event({
       title,
       description,
       date,
-      location,
+      address,
       artist,
-      eventType,
-      ticketPrice,
       eventHost: req.user.id,
+      eventType,
+      musicGenre,
+      otherMusicGenre,
+      ticketPrice,
+      currency,
+      image,
     });
+
     const event = await newEvent.save();
     res.json(
       await Event.findById(event._id).populate("artist").populate("eventHost")
@@ -37,7 +69,6 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
-
 export const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -54,7 +85,6 @@ export const getEventById = async (req, res) => {
   }
 };
 
-
 export const getEventsByUser = async (req, res) => {
   try {
     const events = await Event.find({ createdBy: req.user.id }).sort({
@@ -67,7 +97,7 @@ export const getEventsByUser = async (req, res) => {
   }
 };
 
-export const updateEvent  = async (req, res) => {
+export const updateEvent = async (req, res) => {
   const { title, description, date, location, genre, ticketPrice } = req.body;
   try {
     let event = await Event.findById(req.params.id);
@@ -92,8 +122,7 @@ export const updateEvent  = async (req, res) => {
   }
 };
 
-
- export const deleteEvent  = async (req, res) => {
+export const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {

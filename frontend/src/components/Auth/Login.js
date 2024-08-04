@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 import { Button, TextField, Typography, Box, Divider } from "@mui/material";
-import GoogleIcon from "@mui/icons-material/Google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { GoogleLogin } from "react-google-login";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
+  const { setUser, login, googleLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login, googleLogin } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,24 +21,37 @@ const Login = () => {
     e.preventDefault();
     setError("");
     try {
-      await login(formData.email, formData.password);
+      const user = await login(formData.email, formData.password);
+      setUser(user);
       navigate("/");
     } catch (err) {
-      setError(err || "An error occurred during login.");
+      setError(err.response?.data?.msg || "An error occurred during login.");
     }
   };
 
-  const handleGoogleSuccess = async (response) => {
+  const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      await googleLogin(response.tokenId);
-      navigate("/");
+      const response = await googleLogin({
+        tokenId: credentialResponse.credential,
+      });
+      if (response.isNewUser) {
+        navigate("/complete-signup", {
+          state: { tempToken: response.token },
+        });
+      } else {
+        setUser(response.user);
+        localStorage.setItem("token", response.token);
+        navigate("/profile");
+      }
     } catch (err) {
-      setError(err || "An error occurred during Google login.");
+      console.error("Google login error:", err);
+      setError(
+        err.response?.data?.msg || "An error occurred during Google login."
+      );
     }
   };
 
-  const handleGoogleFailure = (error) => {
-    console.error(error);
+  const handleGoogleError = () => {
     setError("Google login failed. Please try again.");
   };
 
@@ -82,22 +94,12 @@ const Login = () => {
           OR
         </Typography>
       </Divider>
-      <GoogleLogin
-        clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
-        render={(renderProps) => (
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<GoogleIcon />}
-            onClick={renderProps.onClick}
-            disabled={renderProps.disabled}>
-            Sign in with Google
-          </Button>
-        )}
-        onSuccess={handleGoogleSuccess}
-        onFailure={handleGoogleFailure}
-        cookiePolicy={"single_host_origin"}
-      />
+      <Box sx={{ width: "100%" }}>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+        />
+      </Box>
     </Box>
   );
 };

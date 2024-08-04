@@ -6,12 +6,10 @@ import {
   getArtistProfile,
   updateArtistProfile,
   deleteArtistProfile,
+  updateArtist,
+  deleteArtist,
 } from "../controllers/artistController.js";
-import {
-  auth,
-  isAdmin,
-  isArtistOrAdmin,
-} from "../middleware/authMiddleware.js";
+import { auth, isArtistOrAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,7 +19,7 @@ router.get("/profile", auth, isArtistOrAdmin, getArtistProfile);
 router.put("/profile", auth, isArtistOrAdmin, updateArtistProfile);
 router.delete("/profile", auth, isArtistOrAdmin, deleteArtistProfile);
 router.get("/:id", getArtistById);
-router.put("/:id", auth, isAdmin, updateArtistProfile);
-router.delete("/:id", auth, isAdmin, deleteArtistProfile);
+router.put("/:id", auth, isArtistOrAdmin, updateArtist);
+router.delete("/:id", auth, isArtistOrAdmin, deleteArtist);
 
 export default router;

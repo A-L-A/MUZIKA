@@ -1,0 +1,172 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Burundi" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [29.339, -4.499],
+            [30.469, -2.414],
+            [30.527, -2.807],
+            [29.339, -4.499]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Democratic Republic of the Congo" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [12.995, -5.66],
+            [31.174, 5.256],
+            [29.339, -4.499],
+            [12.995, -5.66]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Kenya" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [40.993, -1.439],
+            [41.585, 4.079],
+            [35.817, 4.777],
+            [33.893, -1.12],
+            [40.993, -1.439]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Rwanda" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [29.339, -2.827],
+            [30.82, -1.657],
+            [30.469, -2.414],
+            [29.339, -2.827]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Somalia" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [41.585, 4.079],
+            [51.129, 11.751],
+            [48.938, 8.003],
+            [41.585, 4.079]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "South Sudan" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [31.174, 5.256],
+            [35.817, 4.777],
+            [33.438, 8.325],
+            [31.174, 5.256]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Tanzania" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [33.893, -1.12],
+            [40.472, -10.765],
+            [33.904, -9.694],
+            [33.893, -1.12]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Uganda" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [30.469, -2.414],
+            [33.893, -1.12],
+            [35.817, 4.777],
+            [31.174, 5.256],
+            [30.469, -2.414]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ethiopia" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [37.907, 3.082],
+            [44.957, 13.453],
+            [48.938, 8.003],
+            [37.907, 3.082]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Eritrea" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [36.424, 14.422],
+            [43.081, 12.699],
+            [42.349, 15.211],
+            [36.424, 14.422]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Djibouti" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [41.773, 11.318],
+            [43.081, 12.699],
+            [42.349, 11.974],
+            [41.773, 11.318]
+          ]
+        ]
+      }
+    }
+  ]
+}

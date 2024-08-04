@@ -1,26 +1,23 @@
-// src/components/Layout/Footer.js
 import React from "react";
 import { Box, Typography, Container, Link } from "@mui/material";
 
 const Footer = () => {
   return (
     <Box
+      component="footer"
       sx={{
-        bgcolor: "background.paper",
-        p: 6,
+        py: 3,
+        px: 2,
         mt: "auto",
-      }}
-      component="footer">
-      <Container maxWidth="lg">
-        <Typography variant="h6" align="center" gutterBottom>
-          Muzika
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          align="center"
-          color="text.secondary"
-          component="p">
-          Discover and connect with East African musicians and events.
+        backgroundColor: (theme) =>
+          theme.palette.mode === "light"
+            ? theme.palette.grey[200]
+            : theme.palette.grey[800],
+        width: "100%",
+      }}>
+      <Container maxWidth="sm">
+        <Typography variant="body1" align="center">
+          © {new Date().getFullYear()} Muzika. All rights reserved.
         </Typography>
         <Typography variant="body2" color="text.secondary" align="center">
           {"Copyright © "}

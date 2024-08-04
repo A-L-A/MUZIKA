@@ -2,10 +2,14 @@ import React from "react";
 import { List, ListItem, ListItemText, Typography, Box } from "@mui/material";
 
 const EventList = ({ events }) => {
+  if (!Array.isArray(events) || events.length === 0) {
+    return <Typography>No events to display.</Typography>;
+  }
+
   return (
     <List>
       {events.map((event) => (
-        <ListItem key={event.id} alignItems="flex-start">
+        <ListItem key={event._id} alignItems="flex-start">
           <ListItemText
             primary={event.title}
             secondary={
@@ -14,13 +18,17 @@ const EventList = ({ events }) => {
                   component="span"
                   variant="body2"
                   color="textPrimary">
-                  {event.date} - {event.time}
+                  {new Date(event.date).toLocaleString()}
                 </Typography>
                 <Box mt={1}>
-                  <Typography variant="body2">{event.venue.name}</Typography>
-                  <Typography variant="body2">{event.genre}</Typography>
                   <Typography variant="body2">
-                    Artist: {event.artist}
+                    Location: {event.address || "Address not available"}
+                  </Typography>
+                  <Typography variant="body2">
+                    {event.eventType || "Event type not specified"}
+                  </Typography>
+                  <Typography variant="body2">
+                    Artist: {event.artist?.name || "Unknown"}
                   </Typography>
                 </Box>
               </React.Fragment>

@@ -1,42 +1,65 @@
-// src/components/Layout/Navbar.js
 import React from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import HomeIcon from "@mui/icons-material/Home";
+import ThemeToggleButton from "./ThemeToggleButton"; // Adjust the path if needed
 
 const Navbar = () => {
   const { user, logout } = useAuth();
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={{ backgroundColor: "#8B4513", opacity: 0.9 }}>
       <Toolbar>
-        <Typography
-          variant="h6"
+        <Box
           component={Link}
           to="/"
-          style={{ flexGrow: 1, textDecoration: "none", color: "inherit" }}>
-          Muzika
-        </Typography>
-        <Button color="inherit" component={Link} to="/events">
-          Events
-        </Button>
-        <Button color="inherit" component={Link} to="/artists">
-          Artists
-        </Button>
-        {user ? (
-          <>
-            <Button color="inherit" component={Link} to="/profile">
-              {user.name}
-            </Button>
-            <Button color="inherit" onClick={logout}>
-              Logout
-            </Button>
-          </>
-        ) : (
-          <Button color="inherit" component={Link} to="/auth">
-            Login / Signup
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            color: "inherit",
+            textDecoration: "none",
+          }}>
+          <HomeIcon sx={{ mr: 1 }} />
+          <Typography variant="h6">Muzika</Typography>
+        </Box>
+        <Box sx={{ flexGrow: 1 }} />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <ThemeToggleButton />
+          <Button color="inherit" component={Link} to="/events">
+            Events
           </Button>
-        )}
+          <Button color="inherit" component={Link} to="/artists">
+            Artists
+          </Button>
+          {user ? (
+            <>
+              <Button color="inherit" component={Link} to="/profile">
+                {user.name}
+              </Button>
+              {user.userType === "admin" && (
+                <Button color="inherit" component={Link} to="/admin/dashboard">
+                  Admin Dashboard
+                </Button>
+              )}
+              <Button color="inherit" onClick={logout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button
+              color="inherit"
+              component={Link}
+              to="/auth"
+              sx={{
+                border: "1px solid",
+                borderColor: "inherit",
+                textTransform: "none",
+              }}>
+              Login
+            </Button>
+          )}
+        </Box>
       </Toolbar>
     </AppBar>
   );

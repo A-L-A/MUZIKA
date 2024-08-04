@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, useCallback } from "react";
+import * as api from "../services/api";
 import setAuthToken from "../utils/setAuthToken";
 
 const AuthContext = createContext();
@@ -10,59 +10,61 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        setAuthToken(token);
-        try {
-          const res = await axios.get("/login"); 
-          setUser(res.data);
-        } catch (err) {
-          console.error("Error loading user", err);
-          localStorage.removeItem("token");
-          setAuthToken(null);
-        }
+  const loadUser = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setAuthToken(token);
+      try {
+        const res = await api.getCurrentUser();
+        setUser(res.data);
+      } catch (err) {
+        console.error("Error loading user", err);
+        localStorage.removeItem("token");
+        setAuthToken(null);
       }
-      setLoading(false);
-    };
-
-    loadUser();
+    }
+    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post("/login", { email, password });
+      const res = await api.login(email, password);
       localStorage.setItem("token", res.data.token);
       setAuthToken(res.data.token);
       setUser(res.data.user);
       return res.data.user;
     } catch (err) {
-      throw err.response.data.msg;
+      throw new Error(
+        err.response?.data?.msg || "An error occurred during login."
+      );
     }
   };
 
   const googleLogin = async (tokenId) => {
     try {
-      const res = await axios.post("/api/auth/google", { tokenId });
-      localStorage.setItem("token", res.data.token);
-      setAuthToken(res.data.token);
-      setUser(res.data.user);
-      return res.data.user;
-    } catch (err) {
-      throw err.response.data.msg;
+      const response = await api.googleLogin({ tokenId });
+      const { isNewUser, token, user } = response.data;
+      localStorage.setItem("token", token);
+      setUser(user);
+      return { isNewUser, user };
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw new Error(
+        error.response?.data?.msg || "An error occurred during Google login"
+      );
     }
   };
-
   const register = async (userData) => {
     try {
-      const res = await axios.post("/signup", userData);
+      const res = await api.register(userData);
       localStorage.setItem("token", res.data.token);
       setAuthToken(res.data.token);
       setUser(res.data.user);
       return res.data.user;
     } catch (err) {
-      throw err.response.data.msg;
+      throw new Error(
+        err.response?.data?.msg || "An error occurred during registration."
+      );
     }
   };
 
@@ -77,10 +79,10 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
-    googleLogin, // Add this
+    googleLogin,
     logout,
+    loadUser,
   };
-
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
