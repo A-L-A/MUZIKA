@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import * as api from "../services/api";
 import setAuthToken from "../utils/setAuthToken";
 
+
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
@@ -54,6 +55,7 @@ export const AuthProvider = ({ children }) => {
       );
     }
   };
+
   const register = async (userData) => {
     try {
       const res = await api.register(userData);
@@ -68,10 +70,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = (callback) => {
+    setUser(null);
     localStorage.removeItem("token");
     setAuthToken(null);
-    setUser(null);
+    if (callback) callback();
   };
 
   const value = {

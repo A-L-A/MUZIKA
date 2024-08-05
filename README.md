@@ -14,4 +14,3 @@
 4. Visit `http://localhost:3000` -frontend
 
 
-Check out our live site and start discovering events: [MUZIKA Live](https://your-deployed-url-here.com)

@@ -13,6 +13,11 @@ import {
   Tab,
   IconButton,
   Alert,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -22,6 +27,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import * as api from "../services/api";
 import EventCard from "../components/Eventss/EventCard";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuth();
@@ -29,6 +35,8 @@ const Profile = () => {
   const [formData, setFormData] = useState({ ...user });
   const [userEvents, setUserEvents] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserEvents = async () => {
@@ -68,6 +76,20 @@ const Profile = () => {
         ? user.companyName && user.description
         : true)
     );
+  };
+
+  const handleLogout = () => {
+    setOpenLogoutDialog(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    setOpenLogoutDialog(false);
+    navigate("/auth");
+  };
+
+  const cancelLogout = () => {
+    setOpenLogoutDialog(false);
   };
 
   return (
@@ -205,11 +227,26 @@ const Profile = () => {
         )}
 
         <Box mt={4} display="flex" justifyContent="center">
-          <Button variant="contained" color="secondary" onClick={logout}>
+          <Button variant="contained" color="secondary" onClick={handleLogout}>
             Logout
           </Button>
         </Box>
       </Paper>
+
+      <Dialog open={openLogoutDialog} onClose={cancelLogout}>
+        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to logout?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelLogout}>Cancel</Button>
+          <Button onClick={confirmLogout} autoFocus>
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
