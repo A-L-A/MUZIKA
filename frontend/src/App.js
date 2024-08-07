@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Box, Container } from "@mui/material"; // Added Container import
+import { Box, Container } from "@mui/material";
 import ThemeProviderComponent from "./context/themeContext";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
@@ -12,7 +12,6 @@ import Events from "./pages/Events";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./components/Admin/Dashboard";
 import Profile from "./pages/Profile";
-import CompleteSignup from "./components/Auth/CompleteSignup";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -26,11 +25,7 @@ function AppContent() {
   return (
     <Router>
       <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-        }}>
+        sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Navbar />
         <Box
           component="main"
@@ -45,7 +40,6 @@ function AppContent() {
             <Route path="/artists" element={<Artists />} />
             <Route path="/events" element={<Events />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/complete-signup" element={<CompleteSignup />} />
             <Route
               path="/profile"
               element={
@@ -71,9 +65,6 @@ function AppContent() {
 }
 
 function App() {
-  console.log("Google Client ID:", process.env.REACT_APP_GOOGLE_CLIENT_ID);
-  console.log("Current origin:", window.location.origin);
-
   return (
     <Container maxWidth={false} disableGutters>
       <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>

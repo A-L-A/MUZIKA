@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Artist from "./models/Artist.js"; // Adjust path as needed
+import Artist from "../models/Artist.js"; // Adjust path as needed
 
 dotenv.config();
 

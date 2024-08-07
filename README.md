@@ -11,6 +11,6 @@
 3. Start the servers:
 -cd frontend && npm start
 -cd backend && npm run dev
-4. Visit `http://localhost:3000` -frontend
+4. Visit `http://localhost:3000` 
 
 

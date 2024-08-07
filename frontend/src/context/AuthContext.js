@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import * as api from "../services/api";
 import setAuthToken from "../utils/setAuthToken";
 
-
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
@@ -64,6 +63,11 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       return res.data.user;
     } catch (err) {
+      if (err.response && err.response.status === 409) {
+        throw new Error(
+          "This email is already registered. Please try logging in instead."
+        );
+      }
       throw new Error(
         err.response?.data?.msg || "An error occurred during registration."
       );
@@ -79,6 +83,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    setUser,
     loading,
     login,
     register,

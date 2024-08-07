@@ -62,7 +62,7 @@ const Navbar = () => {
           {user ? (
             <>
               <Button color="inherit" component={Link} to="/profile">
-                {user.name}
+                Profile
               </Button>
               {user.userType === "admin" && (
                 <Button color="inherit" component={Link} to="/admin/dashboard">
@@ -75,7 +75,7 @@ const Navbar = () => {
             <Button
               color="inherit"
               component={Link}
-              to="/auth"
+              to="/login"
               sx={{
                 border: "1px solid",
                 borderColor: "inherit",

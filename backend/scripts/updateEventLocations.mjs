@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Event } from "./models/Event.js";
+import { Event } from "../models/Event.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 

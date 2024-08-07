@@ -27,10 +27,22 @@ export const googleLogin = (tokenId) =>
   axios.post(`${API_URL}/auth/google`, { tokenId });
 export const completeGoogleSignup = (data) =>
   axios.post(`${API_URL}/auth/complete-google-signup`, data);
+export const changePassword = (passwordData) =>
+  axios.put(`${API_URL}/users/change-password`, passwordData, {
+    headers: {
+      "Content-Type": "application/json",
+      "x-auth-token": localStorage.getItem("token"),
+    },
+  });
 // Users
 export const getUserProfile = () => axios.get(`${API_URL}/users/profile`);
 export const updateUserProfile = (userData) =>
-  axios.put(`${API_URL}/users/profile`, userData);
+  axios.put(`${API_URL}/users/profile`, userData, {
+    headers: {
+      "Content-Type": "application/json",
+      "x-auth-token": localStorage.getItem("token"),
+    },
+  });
 export const deleteUserProfile = () => axios.delete(`${API_URL}/users/profile`);
 
 // Artists
