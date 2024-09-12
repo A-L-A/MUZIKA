@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL;
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: `${API_URL}/api`,  
 });
 
 api.interceptors.request.use(
@@ -18,82 +18,83 @@ api.interceptors.request.use(
 );
 
 // Auth
-export const getCurrentUser = () => axios.get(`${API_URL}/users/profile`);
+export const getCurrentUser = () => api.get(`/users/profile`);
 export const login = (email, password) =>
-  axios.post(`${API_URL}/auth/login`, { email, password });
+  api.post(`/auth/login`, { email, password });
 export const register = (userData) =>
-  axios.post(`${API_URL}/auth/signup`, userData);
+  api.post(`/auth/signup`, userData);
 export const googleLogin = (tokenId) =>
-  axios.post(`${API_URL}/auth/google`, { tokenId });
+  api.post(`/auth/google`, { tokenId });
 export const completeGoogleSignup = (data) =>
-  axios.post(`${API_URL}/auth/complete-google-signup`, data);
+  api.post(`/auth/complete-google-signup`, data);
+
 // Users
-export const getUserProfile = () => axios.get(`${API_URL}/users/profile`);
+export const getUserProfile = () => api.get(`/users/profile`);
 export const updateUserProfile = (userData) =>
-  axios.put(`${API_URL}/users/profile`, userData);
-export const deleteUserProfile = () => axios.delete(`${API_URL}/users/profile`);
+  api.put(`/users/profile`, userData);
+export const deleteUserProfile = () => api.delete(`/users/profile`);
 
 // Artists
-export const getArtists = () => axios.get(`${API_URL}/artists`);
+export const getArtists = () => api.get(`/artists`);
 export const createArtist = (artistData) =>
-  axios.post(`${API_URL}/artists`, artistData);
-export const getArtistProfile = () => axios.get(`${API_URL}/artists/profile`);
+  api.post(`/artists`, artistData);
+export const getArtistProfile = () => api.get(`/artists/profile`);
 export const updateArtistProfile = (artistData) =>
-  axios.put(`${API_URL}/artists/profile`, artistData);
+  api.put(`/artists/profile`, artistData);
 export const deleteArtistProfile = () =>
-  axios.delete(`${API_URL}/artists/profile`);
-export const getArtistById = (id) => axios.get(`${API_URL}/artists/${id}`);
+  api.delete(`/artists/profile`);
+export const getArtistById = (id) => api.get(`/artists/${id}`);
 export const updateArtist = (id, artistData) =>
-  axios.put(`${API_URL}/artists/${id}`, artistData);
-export const deleteArtist = (id) => axios.delete(`${API_URL}/artists/${id}`);
+  api.put(`/artists/${id}`, artistData);
+export const deleteArtist = (id) => api.delete(`/artists/${id}`);
 
 // Events
-export const getEvents = () => axios.get(`${API_URL}/events`);
+export const getEvents = () => api.get(`/events`);
 export const createEvent = (eventData) =>
-  axios.post(`${API_URL}/events`, eventData);
-export const getEventsByUser = () => axios.get(`${API_URL}/events/user`);
-export const getEventById = (id) => axios.get(`${API_URL}/events/${id}`);
+  api.post(`/events`, eventData);
+export const getEventsByUser = () => api.get(`/events/user`);
+export const getEventById = (id) => api.get(`/events/${id}`);
 export const updateEvent = (id, eventData) =>
-  axios.put(`${API_URL}/events/${id}`, eventData);
-export const deleteEvent = (id) => axios.delete(`${API_URL}/events/${id}`);
+  api.put(`/events/${id}`, eventData);
+export const deleteEvent = (id) => api.delete(`/events/${id}`);
 
 // Admin
-export const getAllUsers = () => axios.get(`${API_URL}/admin/users`);
+export const getAllUsers = () => api.get(`/admin/users`);
 export const createUser = (userData) =>
-  axios.post(`${API_URL}/admin/users`, userData);
+  api.post(`/admin/users`, userData);
 export const updateUser = (id, userData) =>
-  axios.put(`${API_URL}/admin/users/${id}`, userData);
-export const deleteUser = (id) => axios.delete(`${API_URL}/admin/users/${id}`);
+  api.put(`/admin/users/${id}`, userData);
+export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
 
-export const getAllArtists = () => axios.get(`${API_URL}/admin/artists`);
+export const getAllArtists = () => api.get(`/admin/artists`);
 export const adminUpdateArtist = (id, artistData) =>
-  axios.put(`${API_URL}/admin/artists/${id}`, artistData);
+  api.put(`/admin/artists/${id}`, artistData);
 export const adminDeleteArtist = (id) =>
-  axios.delete(`${API_URL}/admin/artists/${id}`);
+  api.delete(`/admin/artists/${id}`);
 
-export const getAllEvents = () => axios.get(`${API_URL}/admin/events`);
+export const getAllEvents = () => api.get(`/admin/events`);
 export const adminUpdateEvent = (id, eventData) =>
-  axios.put(`${API_URL}/admin/events/${id}`, eventData);
+  api.put(`/admin/events/${id}`, eventData);
 export const adminDeleteEvent = (id) =>
-  axios.delete(`${API_URL}/admin/events/${id}`);
+  api.delete(`/admin/events/${id}`);
 
 // Event Hosts
-export const getEventHosts = () => axios.get(`${API_URL}/event-hosts`);
+export const getEventHosts = () => api.get(`/event-hosts`);
 export const createEventHost = (eventHostData) =>
-  axios.post(`${API_URL}/event-hosts`, eventHostData);
-export const getEventHostProfile = () => axios.get(`${API_URL}/event-hosts/profile`);
+  api.post(`/event-hosts`, eventHostData);
+export const getEventHostProfile = () => api.get(`/event-hosts/profile`);
 export const updateEventHostProfile = (eventHostData) =>
-  axios.put(`${API_URL}/event-hosts/profile`, eventHostData);
+  api.put(`/event-hosts/profile`, eventHostData);
 export const deleteEventHostProfile = () =>
-  axios.delete(`${API_URL}/event-hosts/profile`);
-export const getEventHostById = (id) => axios.get(`${API_URL}/event-hosts/${id}`);
+  api.delete(`/event-hosts/profile`);
+export const getEventHostById = (id) => api.get(`/event-hosts/${id}`);
 export const updateEventHost = (id, eventHostData) =>
-  axios.put(`${API_URL}/event-hosts/${id}`, eventHostData);
-export const deleteEventHost = (id) => axios.delete(`${API_URL}/event-hosts/${id}`);
+  api.put(`/event-hosts/${id}`, eventHostData);
+export const deleteEventHost = (id) => api.delete(`/event-hosts/${id}`);
 
-// Update the admin routes for event hosts
-export const getAllEventHosts = () => axios.get(`${API_URL}/admin/event-hosts`);
+// Admin routes for event hosts
+export const getAllEventHosts = () => api.get(`/admin/event-hosts`);
 export const adminUpdateEventHost = (id, eventHostData) =>
-  axios.put(`${API_URL}/admin/event-hosts/${id}`, eventHostData);
+  api.put(`/admin/event-hosts/${id}`, eventHostData);
 export const adminDeleteEventHost = (id) =>
-  axios.delete(`${API_URL}/admin/event-hosts/${id}`);
+  api.delete(`/admin/event-hosts/${id}`);
