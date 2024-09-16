@@ -1,6 +1,6 @@
 # MUZIKA: Where East African Beats Meet Tech 🎵
 
- MUZIKA is here to rock your world (and your eardrums).
+ MUZIKA is here to rock your world (and your eardrums). Visit the live version at https://muzika-frontend.onrender.com/ 
 
 ## Quick Start
 
