@@ -109,17 +109,7 @@ const Hero = () => {
               fontWeight: "bold",
               color: "white",
               textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
-            }}>
-            Muzika
-          </Typography>
-          <Typography
-            variant="h5"
-            align="center"
-            paragraph
-            sx={{
-              mb: 4,
-              color: "white",
-              textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
+              WebkitTextStroke: "2px black",
             }}>
             Locate & Attend East Africa's best music events!
           </Typography>
@@ -145,6 +135,7 @@ const Hero = () => {
                 "&:hover": {
                   borderColor: "primary.light",
                   color: "primary.light",
+                  WebkitTextStroke: "2px black",
                 },
               }}>
               Discover Artists

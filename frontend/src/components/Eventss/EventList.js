@@ -3,7 +3,7 @@ import { List, ListItem, ListItemText, Typography, Box } from "@mui/material";
 
 const EventList = ({ events }) => {
   if (!Array.isArray(events) || events.length === 0) {
-    return <Typography>No events to display.</Typography>;
+    return <Typography>No events to display</Typography>;
   }
 
   return (

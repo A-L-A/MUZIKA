@@ -20,51 +20,20 @@ const generateToken = (user) => {
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, userType, country, ...additionalInfo } =
-      req.body;
+    const { email, password, userType } = req.body;
 
-    if (!name || !email || !password || !userType || !country) {
-      return res.status(400).json({ msg: "All fields are required" });
+    if (!email || !password || !userType) {
+      return res
+        .status(400)
+        .json({ msg: "Email, password, and user type are required" });
     }
 
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: "User already exists" });
+      return res.status(409).json({ msg: "User already exists" }); 
     }
 
-    user = new User({ name, email, password, userType, country });
-
-    if (userType === "artist") {
-      const { genre, bio, socialLinks } = additionalInfo;
-      if (!genre || !bio) {
-        return res
-          .status(400)
-          .json({ msg: "Genre and bio are required for artists" });
-      }
-      const artist = new Artist({ user: user._id, genre, bio, socialLinks });
-      await artist.save();
-    } else if (userType === "eventHost") {
-      const { companyName, description, contactInfo } = additionalInfo;
-      if (!companyName || !description || !contactInfo) {
-        return res.status(400).json({
-          msg: "Company name, description, and contact info are required for event hosts",
-        });
-      }
-      const eventHost = new EventHost({
-        user: user._id,
-        name,
-        email,
-        password,
-        userType,
-        country,
-        companyName,
-        description,
-        contactInfo,
-      });
-      await eventHost.save();
-    } else if (userType !== "regularUser") {
-      return res.status(400).json({ msg: "Invalid user type" });
-    }
+    user = new User({ email, password, userType });
     await user.save();
 
     const token = generateToken(user);
@@ -72,15 +41,13 @@ export const signup = async (req, res) => {
       token,
       user: {
         id: user._id,
-        name,
         email,
         userType,
-        country,
       },
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: "Server error" });
   }
 };
 

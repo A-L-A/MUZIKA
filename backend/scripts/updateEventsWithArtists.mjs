@@ -1,7 +1,7 @@
 // updateEventsWithArtists.js
 import mongoose from "mongoose";
-import { Event } from "./models/Event.js";
-import User from "./models/User.js";
+import { Event } from "../models/Event.js";
+import User from "../models/User.js";
 import dotenv from "dotenv";
 
 dotenv.config();

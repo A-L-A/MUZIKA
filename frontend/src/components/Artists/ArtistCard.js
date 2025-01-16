@@ -1,117 +1,178 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
-  Typography,
   CardMedia,
-  Box,
-  Chip,
+  Typography,
+  Button,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
+  Grid,
   IconButton,
+  Box,
 } from "@mui/material";
+import {
+  LocationOn,
+  Email,
+  MusicNote,
+  Instagram,
+  Facebook,
+  Twitter,
+} from "@mui/icons-material";
 import CloseIcon from "@mui/icons-material/Close";
+import ReactCountryFlag from "react-country-flag";
 
 const ArtistCard = ({ artist }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const getCountryCode = (countryName) => {
+    const countryCodes = {
+      Burundi: "BI",
+      "Democratic Republic of the Congo": "CD",
+      DRC: "CD",
+      Kenya: "KE",
+      Rwanda: "RW",
+      Uganda: "UG",
+      Tanzania: "TZ",
+      Somalia: "SO",
+      "South Sudan": "SS",
+    };
+    return countryCodes[countryName] || countryName.slice(0, 2).toUpperCase();
+  };
+
+  const truncateBio = (bio, maxLength = 120) => {
+    if (bio.length <= maxLength) return bio;
+    return bio.slice(0, maxLength).trim() + "...";
+  };
+
   return (
     <>
-      <Card
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          transition: "0.3s",
-          "&:hover": {
-            transform: "translateY(-5px)",
-            boxShadow: (theme) => theme.shadows[4],
-          },
-          cursor: "pointer",
-        }}
-        onClick={handleOpen}>
+      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <CardMedia
           component="img"
-          height="200"
-          image={artist.image || "https://source.unsplash.com/random"}
-          alt={artist.user?.name || "Artist"}
-          sx={{ objectFit: "cover" }}
+          height="140"
+          image={artist.image}
+          alt={artist.user.name}
         />
-        <CardContent sx={{ flexGrow: 1 }}>
-          <Typography
-            variant="h5"
-            component="div"
-            sx={{ fontWeight: "bold", mb: 1 }}>
-            {artist.user?.name || "Unknown Artist"}
+        <CardContent
+          sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+          <Typography gutterBottom variant="h5" component="div">
+            {artist.user.name}
           </Typography>
-          <Box mb={2}>
-            <Chip
-              label={artist.genre}
-              size="small"
-              sx={{
-                backgroundColor: (theme) => theme.palette.primary.light,
-                color: (theme) => theme.palette.primary.contrastText,
-              }}
-            />
-          </Box>
           <Typography variant="body2" color="text.secondary">
-            {artist.bio && artist.bio.length > 100
-              ? `${artist.bio.substring(0, 100)}...`
-              : artist.bio}
+            {artist.genre}
           </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ display: "flex", alignItems: "center", mt: 1, mb: 1 }}>
+            <ReactCountryFlag
+              countryCode={getCountryCode(artist.user.country)}
+              svg
+              style={{ marginRight: "8px" }}
+            />
+            {artist.user.country}
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mt: 1,
+              mb: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+            }}>
+            {truncateBio(artist.bio)}
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button onClick={handleOpen} sx={{ mt: 1, alignSelf: "flex-start" }}>
+            More Info
+          </Button>
         </CardContent>
       </Card>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>
-          {artist.user?.name || "Unknown Artist"}
-          <IconButton
-            aria-label="close"
-            onClick={handleClose}
-            sx={{ position: "absolute", right: 8, top: 8 }}>
-            <CloseIcon />
-          </IconButton>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between">
+            {artist.user.name}
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent dividers>
-          <Box mb={2}>
-            <img
-              src={artist.image || "https://source.unsplash.com/random"}
-              alt={artist.user?.name || "Artist"}
-              style={{ width: "100%", borderRadius: "4px" }}
-            />
-          </Box>
-          <Typography variant="h6" gutterBottom>
-            Genre: {artist.genre}
-          </Typography>
-          <Typography variant="body1" paragraph>
-            {artist.bio}
-          </Typography>
-          {artist.socialLinks && (
-            <Box mt={2}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <Box
+                component="img"
+                src={artist.image}
+                alt={artist.user.name}
+                sx={{ width: "100%", borderRadius: "4px" }}
+              />
+            </Grid>
+            <Grid item xs={12} md={8}>
+              <Typography variant="h6" gutterBottom>
+                <MusicNote sx={{ mr: 1, verticalAlign: "middle" }} />
+                Genre: {artist.genre}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <Box
+                  component="span"
+                  sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                  <LocationOn sx={{ mr: 1 }} />
+                  Country:
+                  <ReactCountryFlag
+                    countryCode={getCountryCode(artist.user.country)}
+                    svg
+                    style={{ marginLeft: "8px", marginRight: "8px" }}
+                  />
+                  {artist.user.country}
+                </Box>
+              </Typography>
+              <Typography variant="body1" paragraph>
+                <Email sx={{ mr: 1, verticalAlign: "middle" }} />
+                Email: {artist.user.email}
+              </Typography>
+              <Typography variant="body1" paragraph>
+                Bio: {artist.bio}
+              </Typography>
               <Typography variant="h6" gutterBottom>
                 Social Links:
               </Typography>
-              <ul>
-                {Object.entries(artist.socialLinks).map(([platform, link]) => (
-                  <li key={platform}>
-                    <a href={link} target="_blank" rel="noopener noreferrer">
-                      {platform}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </Box>
-          )}
+              <Box>
+                {artist.socialLinks?.instagram && (
+                  <IconButton
+                    href={artist.socialLinks.instagram}
+                    target="_blank">
+                    <Instagram />
+                  </IconButton>
+                )}
+                {artist.socialLinks?.facebook && (
+                  <IconButton
+                    href={artist.socialLinks.facebook}
+                    target="_blank">
+                    <Facebook />
+                  </IconButton>
+                )}
+                {artist.socialLinks?.twitter && (
+                  <IconButton href={artist.socialLinks.twitter} target="_blank">
+                    <Twitter />
+                  </IconButton>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Close</Button>
-        </DialogActions>
       </Dialog>
     </>
   );

@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       );
     }
   };
+
   const register = async (userData) => {
     try {
       const res = await api.register(userData);
@@ -62,20 +63,27 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       return res.data.user;
     } catch (err) {
+      if (err.response && err.response.status === 409) {
+        throw new Error(
+          "This email is already registered. Please try logging in instead."
+        );
+      }
       throw new Error(
         err.response?.data?.msg || "An error occurred during registration."
       );
     }
   };
 
-  const logout = () => {
+  const logout = (callback) => {
+    setUser(null);
     localStorage.removeItem("token");
     setAuthToken(null);
-    setUser(null);
+    if (callback) callback();
   };
 
   const value = {
     user,
+    setUser,
     loading,
     login,
     register,

@@ -1,12 +1,39 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import MicExternalOnIcon from "@mui/icons-material/MicExternalOn";
-import ThemeToggleButton from "./ThemeToggleButton"; 
+import ThemeToggleButton from "./ThemeToggleButton";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setOpenLogoutDialog(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    setOpenLogoutDialog(false);
+    navigate("/login");
+  };
+
+  const cancelLogout = () => {
+    setOpenLogoutDialog(false);
+  };
 
   return (
     <AppBar position="static" sx={{ backgroundColor: "#8B4513", opacity: 0.9 }}>
@@ -35,22 +62,20 @@ const Navbar = () => {
           {user ? (
             <>
               <Button color="inherit" component={Link} to="/profile">
-                {user.name}
+                Profile
               </Button>
               {user.userType === "admin" && (
                 <Button color="inherit" component={Link} to="/admin/dashboard">
                   Admin Dashboard
                 </Button>
               )}
-              <Button color="inherit" onClick={logout}>
-                Logout
-              </Button>
+              <Button onClick={handleLogout}>Logout</Button>
             </>
           ) : (
             <Button
               color="inherit"
               component={Link}
-              to="/auth"
+              to="/login"
               sx={{
                 border: "1px solid",
                 borderColor: "inherit",
@@ -61,6 +86,21 @@ const Navbar = () => {
           )}
         </Box>
       </Toolbar>
+
+      <Dialog open={openLogoutDialog} onClose={cancelLogout}>
+        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to logout?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelLogout}>Cancel</Button>
+          <Button onClick={confirmLogout} autoFocus>
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppBar>
   );
 };
