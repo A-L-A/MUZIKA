@@ -153,23 +153,12 @@ backend/
 - `DELETE /api/events/:id` - Delete event
 - `GET /api/events/user` - Get events by current user
 
-## Performance Optimizations
-
-The MUZIKA platform includes several optimizations for better performance:
-
-- **API Call Caching**: Geocoding and address lookups are cached to reduce requests
-- **Component Memoization**: React.memo is used to prevent unnecessary re-renders
-- **Lazy Loading**: Images and components are loaded only when needed
-- **Optimized Map Rendering**: Map markers are efficiently managed to improve performance
-- **Debouncing**: Search inputs are debounced to limit API calls
-- **Responsive Image Sizes**: Images are requested at appropriate dimensions
-
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add some amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
+2. Create your feature branch: `git checkout -b feature/new-feature`
+3. Commit your changes: `git commit -m 'Add some new feature'`
+4. Push to the branch: `git push origin feature/new-feature`
 5. Open a Pull Request
 
 ## Acknowledgments
