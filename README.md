@@ -1,4 +1,4 @@
-# MUZIKA: East African Music Events Platfor 🎵
+# MUZIKA: East African Music Events Platform 🎵
 
 MUZIKA is a modern web application connecting fans with East African musicians and events. The platform allows users to discover artists, locate upcoming music events, and enables artists and event hosts to promote themselves and their events.
 

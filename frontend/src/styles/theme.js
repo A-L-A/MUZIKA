@@ -1,65 +1,71 @@
 import { createTheme } from "@mui/material/styles";
 
-// Common theme settings
+/**
+ * Common theme settings shared between light and dark modes
+ * - Responsive typography with reasonable scaling
+ * - Optimized component styling
+ */
 const commonSettings = {
   typography: {
     fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
-    fontSize: 19.2, // Increased by 20%
+    fontSize: 16, 
     h1: {
-      fontSize: "3rem",
+      fontSize: "2.5rem", 
+      fontWeight: 700,
       "@media (min-width:600px)": {
-        fontSize: "4.2rem",
+        fontSize: "3rem", 
       },
     },
     h2: {
-      fontSize: "2.4rem",
+      fontSize: "2rem", 
+      fontWeight: 600,
       "@media (min-width:600px)": {
-        fontSize: "3.6rem",
+        fontSize: "2.5rem", 
       },
     },
     h3: {
-      fontSize: "2.1rem",
+      fontSize: "1.8rem", 
       "@media (min-width:600px)": {
-        fontSize: "3rem",
+        fontSize: "2.2rem", 
       },
     },
+    h4: {
+      fontSize: "1.5rem",
+      fontWeight: 600,
+    },
     body1: {
-      fontSize: "1.2rem",
+      fontSize: "1rem", 
       "@media (min-width:600px)": {
-        fontSize: "1.32rem",
+        fontSize: "1.1rem", 
       },
     },
     body2: {
-      fontSize: "1.05rem",
+      fontSize: "0.875rem", 
       "@media (min-width:600px)": {
-        fontSize: "1.2rem",
+        fontSize: "0.95rem", 
       },
     },
   },
   components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow:
-            "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-          transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-          "&:hover": {
-            transform: "translateY(-4px)",
-            boxShadow:
-              "0 10px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06)",
-          },
-        },
-      },
-    },
     MuiButton: {
       styleOverrides: {
         root: {
           borderRadius: "8px",
           textTransform: "none",
           fontWeight: 600,
-          fontSize: "1.2rem",
-          "@media (min-width:600px)": {
-            fontSize: "1.32rem",
+          fontSize: "0.95rem", 
+          padding: "8px 16px",
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+          transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+          "&:hover": {
+            transform: "translateY(-4px)",
+            boxShadow: "0 10px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06)",
           },
         },
       },
