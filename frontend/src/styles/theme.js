@@ -1,5 +1,4 @@
 import { createTheme } from "@mui/material/styles";
-
 /**
  * Common theme settings shared between light and dark modes
  * - Responsive typography with reasonable scaling
