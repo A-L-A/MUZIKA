@@ -27,6 +27,8 @@ export const googleLogin = (tokenId) =>
   api.post(`/auth/google`, { tokenId });
 export const completeGoogleSignup = (data) =>
   api.post(`/auth/complete-google-signup`, data);
+export const changePassword = (currentPassword, newPassword) =>
+  api.put(`/users/change-password`, { currentPassword, newPassword });
 
 // Users
 export const getUserProfile = () => api.get(`/users/profile`);
