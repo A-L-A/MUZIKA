@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   TextField,
   Button,
@@ -12,6 +12,8 @@ import {
   CircularProgress,
   Paper,
   Grid,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { createEvent } from "../../services/api";
@@ -19,7 +21,10 @@ import axios from "axios";
 
 const OPENCAGE_API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY;
 
-const eventTypes = [
+/**
+ * Constants for form options and configuration
+ */
+const EVENT_TYPES = [
   "Open Mic",
   "Karaoke",
   "Concert",
@@ -28,7 +33,7 @@ const eventTypes = [
   "Live Music",
 ];
 
-const musicGenres = [
+const MUSIC_GENRES = [
   "Afrobeats",
   "Afropop",
   "Afrofusion",
@@ -45,6 +50,10 @@ const musicGenres = [
   "Other",
 ];
 
+/**
+ * CreateEventForm Component
+ * Provides a form for creating new events with geocoding via OpenCage API
+ */
 const CreateEventForm = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -63,16 +72,47 @@ const CreateEventForm = () => {
 
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+  const debounceTimerRef = useRef(null);
+  const geocodeCacheRef = useRef({});
 
+  // Handle form field changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleAddressChange = async (event, newValue) => {
-    setFormData({ ...formData, address: newValue });
-    if (newValue.length > 2) {
+  // Debounced address lookup with caching
+  const handleAddressChange = useCallback(async (event, newValue) => {
+    setFormData((prevData) => ({ ...prevData, address: newValue }));
+
+    // Don't perform search for short inputs
+    if (!newValue || newValue.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Check cache first
+    const cacheKey = `address_${newValue.toLowerCase()}`;
+    if (geocodeCacheRef.current[cacheKey]) {
+      setAddressSuggestions(geocodeCacheRef.current[cacheKey]);
+      return;
+    }
+
+    // Debounce API call to prevent excessive requests
+    debounceTimerRef.current = setTimeout(async () => {
       try {
         setLoading(true);
+
+        // Use OpenCage API for address suggestions
         const response = await axios.get(
           `https://api.opencagedata.com/geocode/v1/json`,
           {
@@ -83,64 +123,148 @@ const CreateEventForm = () => {
             },
           }
         );
+
         if (response.data && response.data.results) {
-          setAddressSuggestions(
-            response.data.results.map((result) => result.formatted)
+          const suggestions = response.data.results.map(
+            (result) => result.formatted
           );
+
+          // Store in cache
+          geocodeCacheRef.current[cacheKey] = suggestions;
+
+          // Update state with suggestions
+          setAddressSuggestions(suggestions);
         }
       } catch (error) {
         console.error("Error fetching address suggestions:", error);
+        setAlert({
+          open: true,
+          message:
+            "Failed to fetch address suggestions. Please try typing a more specific address.",
+          severity: "warning",
+        });
       } finally {
         setLoading(false);
       }
-    }
-  };
+    }, 500); // 500ms debounce
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const addressResponse = await axios.get(
-        `https://api.opencagedata.com/geocode/v1/json`,
-        {
-          params: {
-            q: formData.address,
-            key: OPENCAGE_API_KEY,
-            limit: 1,
-          },
-        }
-      );
 
-      if (addressResponse.data.results.length === 0) {
-        alert(
-          "Invalid address. Please select a valid address from the suggestions."
-        );
-        setLoading(false);
-        return;
+    try {
+      // Validate required fields
+      const requiredFields = [
+        "title",
+        "date",
+        "eventType",
+        "musicGenre",
+        "ticketPrice",
+        "currency",
+        "address",
+      ];
+      for (const field of requiredFields) {
+        if (!formData[field]) {
+          throw new Error(
+            `${field.charAt(0).toUpperCase() + field.slice(1)} is required`
+          );
+        }
       }
 
-      const { lat, lng } = addressResponse.data.results[0].geometry;
-      const eventData = {
-        ...formData,
-        location: {
+      // Get coordinates for the address using OpenCage API
+      let coordinates;
+      const cacheKey = `geocode_${formData.address}`;
+
+      if (geocodeCacheRef.current[cacheKey]) {
+        // Use cached coordinates
+        coordinates = geocodeCacheRef.current[cacheKey];
+      } else {
+        // Geocode the address using OpenCage API
+        const response = await axios.get(
+          `https://api.opencagedata.com/geocode/v1/json`,
+          {
+            params: {
+              q: formData.address,
+              key: OPENCAGE_API_KEY,
+              limit: 1,
+            },
+          }
+        );
+
+        if (
+          !response.data ||
+          !response.data.results ||
+          response.data.results.length === 0
+        ) {
+          throw new Error(
+            "Invalid address. Please select a valid address from the suggestions."
+          );
+        }
+
+        const { lng, lat } = response.data.results[0].geometry;
+        coordinates = {
           type: "Point",
           coordinates: [parseFloat(lng), parseFloat(lat)],
-        },
+        };
+
+        // Cache the coordinates
+        geocodeCacheRef.current[cacheKey] = coordinates;
+      }
+
+      // Use event type to generate default image path
+      const eventType = formData.eventType.toLowerCase().replace(/\s+/g, "-");
+      const defaultImagePath = `${process.env.PUBLIC_URL}/images/eventz/${eventType}.jpg`;
+
+      // Prepare event data
+      const eventData = {
+        ...formData,
+        // Use provided image or default based on event type
+        image: formData.image || defaultImagePath,
+        coordinates: coordinates,
         artist: user.userType === "artist" ? user._id : formData.artist,
         eventHost: user.userType === "eventHost" ? user._id : undefined,
+        // Convert ticket price to number
+        ticketPrice: parseFloat(formData.ticketPrice),
       };
+
+      // Send to API
       await createEvent(eventData);
-      alert("Event created successfully");
-      // Reset form or redirect
+
+      setAlert({
+        open: true,
+        message: "Event created successfully!",
+        severity: "success",
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        date: "",
+        eventType: "",
+        musicGenre: "",
+        otherMusicGenre: "",
+        ticketPrice: "",
+        currency: "",
+        address: "",
+        artist: "",
+        image: "",
+      });
     } catch (error) {
       console.error("Error creating event:", error);
-      alert("Error creating event");
+      setAlert({
+        open: true,
+        message: error.message || "Error creating event",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!["admin", "eventHost", "artist"].includes(user.userType)) {
+  // Check user permission
+  if (!["admin", "eventHost", "artist"].includes(user?.userType)) {
     return <Typography>You don't have permission to create events.</Typography>;
   }
 
@@ -192,7 +316,7 @@ const CreateEventForm = () => {
                 value={formData.eventType}
                 onChange={handleChange}
                 required>
-                {eventTypes.map((type) => (
+                {EVENT_TYPES.map((type) => (
                   <MenuItem key={type} value={type}>
                     {type}
                   </MenuItem>
@@ -208,7 +332,7 @@ const CreateEventForm = () => {
                 value={formData.musicGenre}
                 onChange={handleChange}
                 required>
-                {musicGenres.map((genre) => (
+                {MUSIC_GENRES.map((genre) => (
                   <MenuItem key={genre} value={genre}>
                     {genre}
                   </MenuItem>
@@ -254,6 +378,7 @@ const CreateEventForm = () => {
               freeSolo
               options={addressSuggestions}
               onInputChange={handleAddressChange}
+              value={formData.address}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -284,18 +409,21 @@ const CreateEventForm = () => {
                 label="Artist Name"
                 value={formData.artist}
                 onChange={handleChange}
-                required
               />
             </Grid>
           )}
           <Grid item xs={12}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Image URL (Optional - a default image will be used based on event
+              type)
+            </Typography>
             <TextField
               fullWidth
               name="image"
               label="Event Image URL"
               value={formData.image}
               onChange={handleChange}
-              required
+              placeholder="https://example.com/image.jpg"
             />
           </Grid>
           <Grid item xs={12}>
@@ -310,6 +438,20 @@ const CreateEventForm = () => {
           </Grid>
         </Grid>
       </Box>
+
+      {/* Alert notifications */}
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={() => setAlert({ ...alert, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        <Alert
+          onClose={() => setAlert({ ...alert, open: false })}
+          severity={alert.severity}
+          sx={{ width: "100%" }}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };

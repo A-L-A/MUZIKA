@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Box, TextField, Button, Autocomplete } from "@mui/material";
@@ -6,6 +12,7 @@ import { styled } from "@mui/material/styles";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { renderToStaticMarkup } from "react-dom/server";
 
+// Styled container for the map
 const MapContainer = styled("div")({
   height: "600px",
   width: "100%",
@@ -20,9 +27,77 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
+  // Create music note icon using useMemo to prevent recreation on every render
+  const customIcon = useMemo(() => {
+    const iconHtml = renderToStaticMarkup(
+      <MusicNoteIcon style={{ color: "#8B4513", fontSize: "36px" }} />
+    );
+    return L.divIcon({
+      html: iconHtml,
+      className: "custom-icon",
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+  }, []);
+
+  // Use useCallback for event handlers
+  const handleAddressSearch = useCallback(async () => {
+    if (!mapInstanceRef.current || !address) return;
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          address
+        )}`
+      );
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        mapInstanceRef.current.setView([lat, lon], 13);
+        L.marker([lat, lon])
+          .addTo(mapInstanceRef.current)
+          .bindPopup("Selected location")
+          .openPopup();
+        onLocationSelect({ lat: parseFloat(lat), lng: parseFloat(lon) });
+      } else {
+        alert("Location not found");
+      }
+    } catch (error) {
+      console.error("Error searching for address:", error);
+      alert("Error searching for address");
+    }
+  }, [address, onLocationSelect]);
+
+  const handleAddressChange = useCallback(async (event, newValue) => {
+    setAddress(newValue);
+    if (newValue && newValue.length > 2) {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            newValue
+          )}`
+        );
+        const data = await response.json();
+        setSuggestions(data.map((item) => item.display_name));
+      } catch (error) {
+        console.error("Error fetching address suggestions:", error);
+      }
+    } else {
+      setSuggestions([]);
+    }
+  }, []);
+
+  const handleRecenterMap = useCallback(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([0, 35], 5);
+    }
+  }, []);
+
+  // Create map instance
   useEffect(() => {
-    if (!mapInstanceRef.current) {
+    if (!mapInstanceRef.current && mapRef.current) {
       mapInstanceRef.current = L.map(mapRef.current).setView([0, 35], 5);
+
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -37,29 +112,23 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
     };
   }, []);
 
+  // Update markers when events change
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
+    // Clear existing markers
     mapInstanceRef.current.eachLayer((layer) => {
       if (layer instanceof L.Marker) {
         mapInstanceRef.current.removeLayer(layer);
       }
     });
 
+    // Add markers for each event
     events.forEach((event) => {
       if (event.coordinates && event.coordinates.coordinates) {
         const [longitude, latitude] = event.coordinates.coordinates;
 
-        const iconHtml = renderToStaticMarkup(
-          <MusicNoteIcon style={{ color: "#8B4513", fontSize: "36px" }} />
-        );
-        const customIcon = L.divIcon({
-          html: iconHtml,
-          className: "custom-icon",
-          iconSize: [36, 36],
-          iconAnchor: [18, 36],
-        });
-
+        // Create popup content
         const popupContent = `
           <div style="font-family: Arial, sans-serif; max-width: 200px;">
             <h3 style="margin-bottom: 10px;">${event.title}</h3>
@@ -86,12 +155,14 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
           </div>
         `;
 
+        // Create and add marker using the memoized customIcon
         L.marker([latitude, longitude], { icon: customIcon })
           .addTo(mapInstanceRef.current)
           .bindPopup(popupContent);
       }
     });
 
+    // Add user location marker if available
     if (userLocation) {
       L.marker([userLocation.lat, userLocation.lng])
         .addTo(mapInstanceRef.current)
@@ -100,57 +171,7 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
 
       mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 10);
     }
-  }, [events, userLocation]);
-
-  const handleAddressSearch = async () => {
-    if (!mapInstanceRef.current) return;
-
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          address
-        )}`
-      );
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        mapInstanceRef.current.setView([lat, lon], 13);
-        L.marker([lat, lon])
-          .addTo(mapInstanceRef.current)
-          .bindPopup("Selected location")
-          .openPopup();
-        onLocationSelect({ lat, lng: lon });
-      } else {
-        alert("Location not found");
-      }
-    } catch (error) {
-      console.error("Error searching for address:", error);
-      alert("Error searching for address");
-    }
-  };
-
-  const handleAddressChange = async (event, newValue) => {
-    setAddress(newValue);
-    if (newValue.length > 2) {
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            newValue
-          )}`
-        );
-        const data = await response.json();
-        setSuggestions(data.map((item) => item.display_name));
-      } catch (error) {
-        console.error("Error fetching address suggestions:", error);
-      }
-    }
-  };
-
-  const handleRecenterMap = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([0, 35], 5);
-    }
-  };
+  }, [events, userLocation, customIcon]);
 
   return (
     <Box>
