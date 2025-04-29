@@ -33,61 +33,98 @@ const EventCard = ({ event }) => {
 
   // Get event image based on event type with intelligent matching
   const getEventImage = (event) => {
-    // If event.image is a full URL, use it directly
-    if (event.image && event.image.startsWith("http")) {
-      return event.image;
-    }
-
-    // Try to use event type
-    if (event.eventType) {
-      const type = event.eventType.toLowerCase().replace(/\s+/g, "-");
-      const validTypes = [
-        "concert",
-        "festival",
-        "karaoke",
-        "live-music",
-        "open-mic",
-        "party",
-      ];
-
-      if (validTypes.includes(type)) {
-        return `${process.env.PUBLIC_URL}/images/eventz/${type}.jpg`;
+    try {
+      // If event.image is a full URL, use it directly
+      if (event?.image && event.image.startsWith("http")) {
+        return event.image;
       }
-    }
-
-    // Try to match based on music genre
-    if (event.musicGenre) {
-      const genre = event.musicGenre.toLowerCase().replace(/\s+/g, "-");
-      const genreImageMap = {
-        afrobeats: "concert",
-        afropop: "festival",
-        afrofusion: "concert",
-        amapiano: "party",
-        "bongo flava": "concert",
-        classic: "open-mic",
-        highlife: "live-music",
-        "hiphop/rap": "concert",
-        kinyatrap: "festival",
-        reggae: "concert",
-        rnb: "live-music",
-        sega: "party",
-        zouk: "party",
-      };
-
-      if (genreImageMap[genre]) {
-        return `${process.env.PUBLIC_URL}/images/eventz/${genreImageMap[genre]}.jpg`;
+      
+      // Try to use event type
+      if (event?.eventType) {
+        // Normalize the event type
+        const type = event.eventType.toLowerCase().replace(/\s+/g, "-");
+        
+        // Map for exact matches
+        const eventTypeImageMap = {
+          "concert": "concert.jpg",
+          "festival": "festival.jpg",
+          "karaoke": "karaoke.jpg",
+          "live-music": "live-music.jpg",
+          "open-mic": "open-mic.jpg",
+          "party": "party.jpg"
+        };
+        
+        if (eventTypeImageMap[type]) {
+          return `${process.env.PUBLIC_URL}/images/eventz/${eventTypeImageMap[type]}`;
+        }
       }
+      
+      // Try to match based on music genre if eventType didn't match
+      if (event?.musicGenre) {
+        const genre = event.musicGenre.toLowerCase().replace(/\s+/g, "-");
+        
+        // Map from genre to appropriate event image
+        const genreImageMap = {
+          "afrobeats": "concert.jpg",
+          "afropop": "festival.jpg",
+          "afrofusion": "concert.jpg",
+          "amapiano": "party.jpg",
+          "bongo-flava": "concert.jpg",
+          "classic": "open-mic.jpg",
+          "highlife": "live-music.jpg",
+          "hiphop/rap": "concert.jpg",
+          "hiphop": "concert.jpg",
+          "rap": "concert.jpg",
+          "kinyatrap": "concert.jpg",
+          "reggae": "concert.jpg",
+          "rnb": "live-music.jpg",
+          "sega": "party.jpg",
+          "zouk": "party.jpg"
+        };
+        
+        if (genreImageMap[genre]) {
+          return `${process.env.PUBLIC_URL}/images/eventz/${genreImageMap[genre]}`;
+        }
+      }
+      
+      // If event.image exists but isn't a URL, prepend PUBLIC_URL
+      if (event?.image) {
+        // Handle both with and without leading slash
+        return event.image.startsWith('/') 
+          ? `${process.env.PUBLIC_URL}${event.image}`
+          : `${process.env.PUBLIC_URL}/${event.image}`;
+      }
+      
+      // Random image based on event ID for variety if nothing else matched
+      if (event?._id) {
+        const imageOptions = ["concert.jpg", "festival.jpg", "live-music.jpg", "party.jpg"];
+        const randomIndex = event._id.charCodeAt(0) % imageOptions.length;
+        return `${process.env.PUBLIC_URL}/images/eventz/${imageOptions[randomIndex]}`;
+      }
+      
+      // Final fallback
+      return `${process.env.PUBLIC_URL}/images/eventz/concert.jpg`;
+    } catch (error) {
+      console.error("Error getting event image:", error);
+      return `${process.env.PUBLIC_URL}/images/eventz/concert.jpg`;
     }
-
-    // If event.image exists but isn't a URL, prepend PUBLIC_URL
-    if (event.image) {
-      return `${process.env.PUBLIC_URL}${event.image}`;
-    }
-
-    // Default fallback
-    return `${process.env.PUBLIC_URL}/images/eventz/default-event.jpg`;
   };
-
+  
+  // Handle case where event is undefined
+  if (!event) {
+    return (
+      <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Skeleton variant="rectangular" height={140} animation="wave" />
+        <CardContent>
+          <Skeleton variant="text" height={40} />
+          <Skeleton variant="text" />
+          <Skeleton variant="text" />
+          <Skeleton variant="rectangular" width="100%" height={36} sx={{ mt: 2 }} />
+        </CardContent>
+      </Card>
+    );
+  }
+  
   const imageUrl = getEventImage(event);
 
   const handleClickOpen = () => {
@@ -129,12 +166,15 @@ const EventCard = ({ event }) => {
           height="140"
           image={imageUrl}
           alt={event.title}
-          sx={{ display: imageLoaded ? "block" : "none" }}
+          sx={{ display: imageLoaded ? "block" : "none", objectFit: "cover" }}
           onLoad={() => setImageLoaded(true)}
           onError={(e) => {
-            // On error, try to load default image
+            // On error, try to load a generic event image based on type
             console.log("Error loading image:", e.target.src);
-            e.target.src = `${process.env.PUBLIC_URL}/images/eventz/default-event.jpg`;
+            const fallbackImage = event.eventType?.toLowerCase().includes("concert") 
+              ? "concert.jpg" 
+              : "festival.jpg";
+            e.target.src = `${process.env.PUBLIC_URL}/images/eventz/${fallbackImage}`;
           }}
           loading="lazy" // Use native lazy loading
         />
@@ -247,4 +287,5 @@ const EventCard = ({ event }) => {
     </>
   );
 };
+
 export default memo(EventCard);

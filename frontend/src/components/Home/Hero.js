@@ -9,15 +9,15 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const heroImages = [
   {
-    url: "https://muzika-s2110857.s3.amazonaws.com/hero-images/pexels-curtis-loy-3404897-5196012.jpg",
+    url: "/images/backgroundz/hero-background-1.jpg",
     link: "/",
   },
   {
-    url: "https://muzika-s2110857.s3.amazonaws.com/hero-images/pexels-wendywei-1190297+(1).jpg",
+    url: "/images/backgroundz/hero-background-2.jpg",
     link: "/",
   },
   {
-    url: "https://muzika-s2110857.s3.amazonaws.com/hero-images/pexels-shamanneri-neri-2664115-4518778.jpg",
+    url: "/images/backgroundz/hero-background-3.jpg",
     link: "/",
   },
 ];
@@ -33,7 +33,8 @@ const NextArrow = (props) => {
         right: "20px",
         zIndex: 1,
         color: "white",
-      }}>
+      }}
+    >
       <ArrowForwardIosIcon />
     </IconButton>
   );
@@ -50,7 +51,8 @@ const PrevArrow = (props) => {
         left: "20px",
         zIndex: 1,
         color: "white",
-      }}>
+      }}
+    >
       <ArrowBackIosIcon />
     </IconButton>
   );
@@ -67,10 +69,20 @@ const Hero = () => {
     autoplaySpeed: 5000,
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
+    // Remove slider padding
+    arrows: true,
+    className: "hero-slider",
   };
 
   return (
-    <Box sx={{ position: "relative", height: "100vh" }}>
+    <Box sx={{ 
+      position: "relative", 
+      height: "100vh",
+      width: "100vw",
+      margin: 0,
+      padding: 0,
+      overflow: "hidden",
+    }}>
       <Slider {...settings}>
         {heroImages.map((image, index) => (
           <div key={index}>
@@ -79,9 +91,13 @@ const Hero = () => {
               to={image.link}
               sx={{
                 height: "100vh",
+                width: "100vw",
+                margin: 0,
+                padding: 0,
                 background: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('${image.url}')`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -98,8 +114,11 @@ const Hero = () => {
           transform: "translate(-50%, -50%)",
           textAlign: "center",
           width: "100%",
-        }}>
-        <Container maxWidth="sm">
+          padding: 0,
+          margin: 0,
+        }}
+      >
+        <Container maxWidth="sm" sx={{ padding: 0 }}>
           <Typography
             component="h1"
             variant="h2"
@@ -110,7 +129,9 @@ const Hero = () => {
               color: "white",
               textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
               WebkitTextStroke: "2px black",
-            }}>
+              margin: 0,
+            }}
+          >
             Locate & Attend East Africa's best music events!
           </Typography>
           <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
@@ -122,7 +143,8 @@ const Hero = () => {
                 mr: 2,
                 bgcolor: "primary.main",
                 "&:hover": { bgcolor: "primary.dark" },
-              }}>
+              }}
+            >
               Explore Events
             </Button>
             <Button
@@ -137,7 +159,8 @@ const Hero = () => {
                   color: "primary.light",
                   WebkitTextStroke: "2px black",
                 },
-              }}>
+              }}
+            >
               Discover Artists
             </Button>
           </Box>

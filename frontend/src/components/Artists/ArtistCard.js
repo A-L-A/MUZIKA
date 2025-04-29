@@ -32,6 +32,8 @@ const ArtistCard = ({ artist }) => {
   const handleClose = () => setOpen(false);
 
   const getCountryCode = (countryName) => {
+    if (!countryName) return "XX"; // Fallback for missing country
+    
     const countryCodes = {
       Burundi: "BI",
       "Democratic Republic of the Congo": "CD",
@@ -52,43 +54,91 @@ const ArtistCard = ({ artist }) => {
     return bio.slice(0, maxLength).trim() + "...";
   };
 
-  // Get artist image based on artist name or fallback
+  // More robust artist image selection
   const getArtistImage = () => {
-    // If artist.image is a full URL, use it directly
-    if (artist.image && artist.image.startsWith("http")) {
-      return artist.image;
-    }
-
-    // Try to use artist first name from the full name
-    if (artist.user && artist.user.name) {
-      const firstName = artist.user.name.split(" ")[0].toLowerCase();
-      // List of available artist images
-      const availableArtists = [
-        "juma",
-        "wanjiku",
-        "esther",
-        "aminata",
-        "moussa",
-        "chantal",
-        "jean-claude",
-        "tariq",
-      ];
-
-      if (availableArtists.includes(firstName)) {
-        return `${process.env.PUBLIC_URL}/images/artistz/${firstName}.jpg`;
+    try {
+      // If artist.image is a full URL, use it directly
+      if (artist.image && artist.image.startsWith("http")) {
+        return artist.image;
       }
-    }
 
-    // If artist.image exists but isn't a URL, prepend PUBLIC_URL
-    if (artist.image) {
-      return `${process.env.PUBLIC_URL}${artist.image}`;
+      // Try to extract first name from user name
+      const userName = artist?.user?.name || "";
+      const firstName = userName.split(" ")[0]?.toLowerCase();
+      
+      // Map of artist first names to image filenames
+      const artistImageMap = {
+        "juma": "juma.jpg",
+        "wanjiku": "wanjiku.jpg",
+        "esther": "esther.jpg",
+        "aminata": "aminata.jpg",
+        "moussa": "moussa.jpg",
+        "chantal": "chantal.jpg",
+        "jean": "jean-claude.jpg", // Handle Jean-Claude case
+        "tariq": "tariq.jpg"
+      };
+      
+      // Special case for Jean-Claude (compound name)
+      if (userName.toLowerCase().includes("jean-claude")) {
+        return `${process.env.PUBLIC_URL}/images/artistz/jean-claude.jpg`;
+      }
+      
+      // If we have an image for this first name
+      if (artistImageMap[firstName]) {
+        return `${process.env.PUBLIC_URL}/images/artistz/${artistImageMap[firstName]}`;
+      }
+      
+      // If artist.image exists but isn't a URL, prepend PUBLIC_URL
+      if (artist.image) {
+        // Handle both with and without leading slash
+        return artist.image.startsWith('/') 
+          ? `${process.env.PUBLIC_URL}${artist.image}`
+          : `${process.env.PUBLIC_URL}/${artist.image}`;
+      }
+      
+      // Default fallback
+      return `${process.env.PUBLIC_URL}/images/artistz/default-artist.jpg`;
+    } catch (error) {
+      console.error("Error getting artist image:", error);
+      return `${process.env.PUBLIC_URL}/images/artistz/default-artist.jpg`;
     }
+  };
 
-    // Default fallback
-    return `${process.env.PUBLIC_URL}/images/artistz/default-artist.jpg`;
+  // Get user name with fallback
+  const getUserName = () => {
+    if (artist?.user?.name) return artist.user.name;
+    if (artist?.name) return artist.name;
+    return "Unknown Artist";
+  };
+
+  // Get user country with fallback
+  const getUserCountry = () => {
+    if (artist?.user?.country) return artist.user.country;
+    if (artist?.country) return artist.country;
+    return "Unknown";
   };
 
   const artistImage = getArtistImage();
+  const artistName = getUserName();
+  const artistCountry = getUserCountry();
+
+  // Handle case where artist or user is undefined
+  if (!artist) {
+    return (
+      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <Skeleton variant="rectangular" height={140} animation="wave" />
+        <CardContent>
+          <Skeleton variant="text" height={40} />
+          <Skeleton variant="text" />
+          <Skeleton variant="text" />
+          <Skeleton variant="text" />
+          <Box sx={{ mt: 2 }}>
+            <Skeleton variant="rectangular" width={100} height={36} />
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -101,7 +151,7 @@ const ArtistCard = ({ artist }) => {
           component="img"
           height="140"
           image={artistImage}
-          alt={artist.user.name}
+          alt={artistName}
           sx={{ display: imageLoaded ? "block" : "none" }}
           onLoad={() => setImageLoaded(true)}
           onError={(e) => {
@@ -113,21 +163,21 @@ const ArtistCard = ({ artist }) => {
         <CardContent
           sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
           <Typography gutterBottom variant="h5" component="div">
-            {artist.user.name}
+            {artistName}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {artist.genre}
+            {artist.genre || "Various Genres"}
           </Typography>
           <Typography
             variant="body2"
             color="text.secondary"
             sx={{ display: "flex", alignItems: "center", mt: 1, mb: 1 }}>
             <ReactCountryFlag
-              countryCode={getCountryCode(artist.user.country)}
+              countryCode={getCountryCode(artistCountry)}
               svg
               style={{ marginRight: "8px" }}
             />
-            {artist.user.country}
+            {artistCountry}
           </Typography>
           <Typography
             variant="body2"
@@ -156,7 +206,7 @@ const ArtistCard = ({ artist }) => {
             display="flex"
             alignItems="center"
             justifyContent="space-between">
-            {artist.user.name}
+            {artistName}
             <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
@@ -168,7 +218,7 @@ const ArtistCard = ({ artist }) => {
               <Box
                 component="img"
                 src={artistImage}
-                alt={artist.user.name}
+                alt={artistName}
                 sx={{ width: "100%", borderRadius: "4px" }}
                 onError={(e) => {
                   e.target.src = `${process.env.PUBLIC_URL}/images/artistz/default-artist.jpg`;
@@ -178,7 +228,7 @@ const ArtistCard = ({ artist }) => {
             <Grid item xs={12} md={8}>
               <Typography variant="h6" gutterBottom>
                 <MusicNote sx={{ mr: 1, verticalAlign: "middle" }} />
-                Genre: {artist.genre}
+                Genre: {artist.genre || "Not specified"}
               </Typography>
               <Typography variant="body1" paragraph>
                 <Box
@@ -187,16 +237,16 @@ const ArtistCard = ({ artist }) => {
                   <LocationOn sx={{ mr: 1 }} />
                   Country:
                   <ReactCountryFlag
-                    countryCode={getCountryCode(artist.user.country)}
+                    countryCode={getCountryCode(artistCountry)}
                     svg
                     style={{ marginLeft: "8px", marginRight: "8px" }}
                   />
-                  {artist.user.country}
+                  {artistCountry}
                 </Box>
               </Typography>
               <Typography variant="body1" paragraph>
                 <Email sx={{ mr: 1, verticalAlign: "middle" }} />
-                Email: {artist.user.email}
+                Email: {artist.user?.email || "Not available"}
               </Typography>
               <Typography variant="body1" paragraph>
                 Bio: {artist.bio || "No bio available"}
@@ -223,6 +273,13 @@ const ArtistCard = ({ artist }) => {
                   <IconButton href={artist.socialLinks.twitter} target="_blank">
                     <Twitter />
                   </IconButton>
+                )}
+                {!artist.socialLinks?.instagram && 
+                 !artist.socialLinks?.facebook && 
+                 !artist.socialLinks?.twitter && (
+                  <Typography variant="body2" color="text.secondary">
+                    No social links available
+                  </Typography>
                 )}
               </Box>
             </Grid>
