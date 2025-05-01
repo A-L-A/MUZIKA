@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Container } from "@mui/material";
+import { Box } from "@mui/material";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -10,18 +10,23 @@ const Layout = ({ children }) => {
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-      }}>
+        width: '100vw',
+        overflowX: 'hidden',
+        margin: 0,
+        padding: 0,
+      }}
+    >
       <Navbar />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-        }}>
-        <Container maxWidth={false} disableGutters>
-          {children}
-        </Container>
+          width: '100%',
+          margin: 0,
+          padding: 0,
+        }}
+      >
+        {children}
       </Box>
       <Footer />
     </Box>

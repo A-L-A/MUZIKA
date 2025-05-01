@@ -69,15 +69,12 @@ const Hero = () => {
     autoplaySpeed: 5000,
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
-    // Remove slider padding
-    arrows: true,
-    className: "hero-slider",
   };
 
   return (
     <Box sx={{ 
       position: "relative", 
-      height: "100vh",
+      height: "calc(100vh - 64px)",
       width: "100vw",
       margin: 0,
       padding: 0,
@@ -90,7 +87,7 @@ const Hero = () => {
               component={Link}
               to={image.link}
               sx={{
-                height: "100vh",
+                height: "calc(100vh - 64px)",
                 width: "100vw",
                 margin: 0,
                 padding: 0,

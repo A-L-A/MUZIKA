@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Grid,
@@ -23,45 +23,29 @@ const Artists = () => {
     genre: "",
   });
 
-  // Extract unique countries and genres for filters
-  const countries = [...new Set(artists.map((artist) => artist.user?.country).filter(Boolean))];
-  const genres = [...new Set(artists.map((artist) => artist.genre).filter(Boolean))];
-
-  useEffect(() => {
-    fetchArtists();
-  }, []);
-
-  useEffect(() => {
-    filterArtists();
-  }, [artists, filters]);
-
-  const fetchArtists = async () => {
+  const fetchArtists = useCallback(async () => {
     setLoading(true);
     try {
-      // Try to fetch from API
       const data = await getArtists();
-      
+
       if (data && Array.isArray(data)) {
         setArtists(data);
         setError(null);
       } else {
-        // Handle unexpected response format
         console.error("Invalid artists data format:", data);
         setError("Received invalid data format from server");
-        // Use hardcoded data as fallback
         setArtists(getDummyArtists());
       }
     } catch (error) {
       console.error("Error fetching artists:", error);
       setError("Failed to load artists. Using sample data instead.");
-      // Use hardcoded data as fallback
       setArtists(getDummyArtists());
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterArtists = () => {
+  const filterArtists = useCallback(() => {
     let filtered = [...artists];
 
     if (filters.country) {
@@ -75,14 +59,19 @@ const Artists = () => {
     }
 
     setFilteredArtists(filtered);
-  };
+  }, [artists, filters.country, filters.genre]);
 
-  const handleFilterChange = (e) => {
-    setFilters({
-      ...filters,
-      [e.target.name]: e.target.value,
-    });
-  };
+  useEffect(() => {
+    fetchArtists();
+  }, [fetchArtists]);
+
+  useEffect(() => {
+    filterArtists();
+  }, [filterArtists]);
+
+  // Extract unique countries and genres for filters
+  const countries = [...new Set(artists.map((artist) => artist.user?.country).filter(Boolean))];
+  const genres = [...new Set(artists.map((artist) => artist.genre).filter(Boolean))];
 
   // Fallback data in case API fails
   const getDummyArtists = () => {
@@ -96,11 +85,7 @@ const Artists = () => {
           country: "Kenya"
         },
         genre: "Afrobeats",
-        bio: "Passionate Afrobeats artist from Nairobi with a unique sound that blends traditional and modern rhythms.",
-        socialLinks: {
-          instagram: "https://instagram.com/juma",
-          twitter: "https://twitter.com/juma"
-        }
+        bio: "Passionate Afrobeats artist from Nairobi with a unique sound that blends traditional and modern rhythms."
       },
       {
         _id: "2",
@@ -111,11 +96,7 @@ const Artists = () => {
           country: "Kenya"
         },
         genre: "Afropop",
-        bio: "Kenyan vocalist specializing in Afropop with influences from traditional Kenyan music.",
-        socialLinks: {
-          instagram: "https://instagram.com/wanjiku",
-          facebook: "https://facebook.com/wanjiku"
-        }
+        bio: "Kenyan vocalist specializing in Afropop with influences from traditional Kenyan music."
       },
       {
         _id: "3",
@@ -126,10 +107,7 @@ const Artists = () => {
           country: "Uganda"
         },
         genre: "Reggae",
-        bio: "Reggae artist from Kampala with a passion for creating music that speaks to social issues.",
-        socialLinks: {
-          twitter: "https://twitter.com/esther"
-        }
+        bio: "Reggae artist from Kampala with a passion for creating music that speaks to social issues."
       },
       {
         _id: "4",
@@ -140,10 +118,7 @@ const Artists = () => {
           country: "Rwanda"
         },
         genre: "Hip-hop",
-        bio: "Hip-hop artist and producer from Kigali with a unique flow and beats.",
-        socialLinks: {
-          instagram: "https://instagram.com/moussa"
-        }
+        bio: "Hip-hop artist and producer from Kigali with a unique flow and beats."
       },
       {
         _id: "5",
@@ -154,12 +129,7 @@ const Artists = () => {
           country: "Tanzania"
         },
         genre: "RnB",
-        bio: "R&B vocalist from Dar es Salaam with a soulful voice and touching lyrics.",
-        socialLinks: {
-          instagram: "https://instagram.com/aminata",
-          facebook: "https://facebook.com/aminata",
-          twitter: "https://twitter.com/aminata"
-        }
+        bio: "R&B vocalist from Dar es Salaam with a soulful voice and touching lyrics."
       }
     ];
   };
@@ -181,9 +151,7 @@ const Artists = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Discover Artists
-      </Typography>
+
 
       {error && (
         <Alert severity="warning" sx={{ mb: 2 }}>
@@ -192,6 +160,9 @@ const Artists = () => {
       )}
 
       <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ pb: 3 }}>
+          Discover Artists
+        </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <TextField
@@ -200,7 +171,7 @@ const Artists = () => {
               name="country"
               label="Filter by Country"
               value={filters.country}
-              onChange={handleFilterChange}
+              onChange={(e) => setFilters({ ...filters, country: e.target.value })}
             >
               <MenuItem value="">All Countries</MenuItem>
               {countries.map((country) => (
@@ -217,7 +188,7 @@ const Artists = () => {
               name="genre"
               label="Filter by Genre"
               value={filters.genre}
-              onChange={handleFilterChange}
+              onChange={(e) => setFilters({ ...filters, genre: e.target.value })}
             >
               <MenuItem value="">All Genres</MenuItem>
               {genres.map((genre) => (

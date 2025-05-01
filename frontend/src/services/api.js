@@ -1,11 +1,21 @@
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL;
+// Use the default URL if env variable not set
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
+console.log("API URL:", API_URL); // For debugging
+
+// Create axios instance
 const api = axios.create({
-  baseURL: API_URL,  
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  // For browsers - include credentials
+  withCredentials: false // Set to true if your API requires cookies
 });
 
+// Add request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -17,86 +27,111 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Add response interceptor for better debugging
+api.interceptors.response.use(
+  (response) => response.data, // Unwrap the data directly
+  (error) => {
+    // Log detailed error info for debugging
+    if (error.response) {
+      // Server responded with error
+      console.error("API Error:", {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+    } else if (error.request) {
+      // Request made but no response received (network issue)
+      console.error("Network Error:", error.request);
+    } else {
+      // Error in setting up the request
+      console.error("Request Error:", error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth
-export const getCurrentUser = () => api.get(`/users/profile`);
+export const getCurrentUser = () => api.get(`/api/users/profile`);
 export const login = (email, password) =>
-  api.post(`/auth/login`, { email, password });
+  api.post(`/api/auth/login`, { email, password });
 export const register = (userData) =>
-  api.post(`/auth/signup`, userData);
+  api.post(`/api/auth/signup`, userData);
 export const googleLogin = (tokenId) =>
-  api.post(`/auth/google`, { tokenId });
+  api.post(`/api/auth/google`, { tokenId });
 export const completeGoogleSignup = (data) =>
-  api.post(`/auth/complete-google-signup`, data);
+  api.post(`/api/auth/complete-google-signup`, data);
 export const changePassword = (currentPassword, newPassword) =>
-  api.put(`/users/change-password`, { currentPassword, newPassword });
+  api.put(`/api/users/change-password`, { currentPassword, newPassword });
 
 // Users
-export const getUserProfile = () => api.get(`/users/profile`);
+export const getUserProfile = () => api.get(`/api/users/profile`);
 export const updateUserProfile = (userData) =>
-  api.put(`/users/profile`, userData);
-export const deleteUserProfile = () => api.delete(`/users/profile`);
+  api.put(`/api/users/profile`, userData);
+export const deleteUserProfile = () => api.delete(`/api/users/profile`);
 
 // Artists
-export const getArtists = () => api.get(`/artists`);
+export const getArtists = () => api.get(`/api/artists`);
 export const createArtist = (artistData) =>
-  api.post(`/artists`, artistData);
-export const getArtistProfile = () => api.get(`/artists/profile`);
+  api.post(`/api/artists`, artistData);
+export const getArtistProfile = () => api.get(`/api/artists/profile`);
 export const updateArtistProfile = (artistData) =>
-  api.put(`/artists/profile`, artistData);
+  api.put(`/api/artists/profile`, artistData);
 export const deleteArtistProfile = () =>
-  api.delete(`/artists/profile`);
-export const getArtistById = (id) => api.get(`/artists/${id}`);
+  api.delete(`/api/artists/profile`);
+export const getArtistById = (id) => api.get(`/api/artists/${id}`);
 export const updateArtist = (id, artistData) =>
-  api.put(`/artists/${id}`, artistData);
-export const deleteArtist = (id) => api.delete(`/artists/${id}`);
+  api.put(`/api/artists/${id}`, artistData);
+export const deleteArtist = (id) => api.delete(`/api/artists/${id}`);
 
 // Events
-export const getEvents = () => api.get(`/events`);
+export const getEvents = () => api.get(`/api/events`);
 export const createEvent = (eventData) =>
-  api.post(`/events`, eventData);
-export const getEventsByUser = () => api.get(`/events/user`);
-export const getEventById = (id) => api.get(`/events/${id}`);
+  api.post(`/api/events`, eventData);
+export const getEventsByUser = () => api.get(`/api/events/user`);
+export const getEventById = (id) => api.get(`/api/events/${id}`);
 export const updateEvent = (id, eventData) =>
-  api.put(`/events/${id}`, eventData);
-export const deleteEvent = (id) => api.delete(`/events/${id}`);
+  api.put(`/api/events/${id}`, eventData);
+export const deleteEvent = (id) => api.delete(`/api/events/${id}`);
 
 // Admin
-export const getAllUsers = () => api.get(`/admin/users`);
+export const getAllUsers = () => api.get(`/api/admin/users`);
 export const createUser = (userData) =>
-  api.post(`/admin/users`, userData);
+  api.post(`/api/admin/users`, userData);
 export const updateUser = (id, userData) =>
-  api.put(`/admin/users/${id}`, userData);
-export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
+  api.put(`/api/admin/users/${id}`, userData);
+export const deleteUser = (id) => api.delete(`/api/admin/users/${id}`);
 
-export const getAllArtists = () => api.get(`/admin/artists`);
+export const getAllArtists = () => api.get(`/api/admin/artists`);
 export const adminUpdateArtist = (id, artistData) =>
-  api.put(`/admin/artists/${id}`, artistData);
+  api.put(`/api/admin/artists/${id}`, artistData);
 export const adminDeleteArtist = (id) =>
-  api.delete(`/admin/artists/${id}`);
+  api.delete(`/api/admin/artists/${id}`);
 
-export const getAllEvents = () => api.get(`/admin/events`);
+export const getAllEvents = () => api.get(`/api/admin/events`);
 export const adminUpdateEvent = (id, eventData) =>
-  api.put(`/admin/events/${id}`, eventData);
+  api.put(`/api/admin/events/${id}`, eventData);
 export const adminDeleteEvent = (id) =>
-  api.delete(`/admin/events/${id}`);
+  api.delete(`/api/admin/events/${id}`);
 
 // Event Hosts
-export const getEventHosts = () => api.get(`/event-hosts`);
+export const getEventHosts = () => api.get(`/api/event-hosts`);
 export const createEventHost = (eventHostData) =>
-  api.post(`/event-hosts`, eventHostData);
-export const getEventHostProfile = () => api.get(`/event-hosts/profile`);
+  api.post(`/api/event-hosts`, eventHostData);
+export const getEventHostProfile = () => api.get(`/api/event-hosts/profile`);
 export const updateEventHostProfile = (eventHostData) =>
-  api.put(`/event-hosts/profile`, eventHostData);
+  api.put(`/api/event-hosts/profile`, eventHostData);
 export const deleteEventHostProfile = () =>
-  api.delete(`/event-hosts/profile`);
-export const getEventHostById = (id) => api.get(`/event-hosts/${id}`);
+  api.delete(`/api/event-hosts/profile`);
+export const getEventHostById = (id) => api.get(`/api/event-hosts/${id}`);
 export const updateEventHost = (id, eventHostData) =>
-  api.put(`/event-hosts/${id}`, eventHostData);
-export const deleteEventHost = (id) => api.delete(`/event-hosts/${id}`);
+  api.put(`/api/event-hosts/${id}`, eventHostData);
+export const deleteEventHost = (id) => api.delete(`/api/event-hosts/${id}`);
 
 // Admin routes for event hosts
-export const getAllEventHosts = () => api.get(`/admin/event-hosts`);
+export const getAllEventHosts = () => api.get(`/api/admin/event-hosts`);
 export const adminUpdateEventHost = (id, eventHostData) =>
-  api.put(`/admin/event-hosts/${id}`, eventHostData);
+  api.put(`/api/admin/event-hosts/${id}`, eventHostData);
 export const adminDeleteEventHost = (id) =>
-  api.delete(`/admin/event-hosts/${id}`);
+  api.delete(`/api/admin/event-hosts/${id}`);
+
+export default api;

@@ -14,6 +14,7 @@ import AdminDashboard from "./components/Admin/Dashboard";
 import Profile from "./pages/Profile";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import ImagePreloader from "./utils/ImagePreloader"; 
 
 function AppContent() {
   const { loadUser } = useAuth();
@@ -24,6 +25,8 @@ function AppContent() {
 
   return (
     <Router>
+      <ImagePreloader />
+      
       <Box
         sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Navbar />

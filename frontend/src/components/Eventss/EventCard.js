@@ -1,17 +1,17 @@
-import React, { useState, memo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardMedia,
   Typography,
   Button,
-  Box,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   IconButton,
   Skeleton,
+  Box,
 } from "@mui/material";
 import {
   Event as EventIcon,
@@ -21,111 +21,41 @@ import {
   Close as CloseIcon,
 } from "@mui/icons-material";
 
-/**
- * EventCard Component
- * Displays an individual event in a card format with modal details
- *
- * @param {Object} event - The event data to display
- */
 const EventCard = ({ event }) => {
   const [open, setOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
-  // Get event image based on event type with intelligent matching
-  const getEventImage = (event) => {
-    try {
-      // If event.image is a full URL, use it directly
-      if (event?.image && event.image.startsWith("http")) {
-        return event.image;
-      }
+  useEffect(() => {
+    if (!event) return;
+
+    let imgUrl = '';
+
+    // First try to use the event's image if provided
+    if (event.image) {
+      imgUrl = event.image.startsWith('/') 
+        ? `${process.env.PUBLIC_URL}${event.image}`
+        : `${process.env.PUBLIC_URL}/${event.image}`;
+    } 
+    // Otherwise try to match by event type
+    else if (event.eventType) {
+      const type = event.eventType.toLowerCase().replace(/\s+/g, '-');
+      const eventTypeImageMap = {
+        "concert": "concert.jpg",
+        "festival": "festival.jpg",
+        "karaoke": "karaoke.jpg",
+        "live-music": "live-music.jpg",
+        "open-mic": "open-mic.jpg",
+        "party": "party.jpg"
+      };
       
-      // Try to use event type
-      if (event?.eventType) {
-        // Normalize the event type
-        const type = event.eventType.toLowerCase().replace(/\s+/g, "-");
-        
-        // Map for exact matches
-        const eventTypeImageMap = {
-          "concert": "concert.jpg",
-          "festival": "festival.jpg",
-          "karaoke": "karaoke.jpg",
-          "live-music": "live-music.jpg",
-          "open-mic": "open-mic.jpg",
-          "party": "party.jpg"
-        };
-        
-        if (eventTypeImageMap[type]) {
-          return `${process.env.PUBLIC_URL}/images/eventz/${eventTypeImageMap[type]}`;
-        }
+      if (eventTypeImageMap[type]) {
+        imgUrl = `${process.env.PUBLIC_URL}/images/eventz/${eventTypeImageMap[type]}`;
       }
-      
-      // Try to match based on music genre if eventType didn't match
-      if (event?.musicGenre) {
-        const genre = event.musicGenre.toLowerCase().replace(/\s+/g, "-");
-        
-        // Map from genre to appropriate event image
-        const genreImageMap = {
-          "afrobeats": "concert.jpg",
-          "afropop": "festival.jpg",
-          "afrofusion": "concert.jpg",
-          "amapiano": "party.jpg",
-          "bongo-flava": "concert.jpg",
-          "classic": "open-mic.jpg",
-          "highlife": "live-music.jpg",
-          "hiphop/rap": "concert.jpg",
-          "hiphop": "concert.jpg",
-          "rap": "concert.jpg",
-          "kinyatrap": "concert.jpg",
-          "reggae": "concert.jpg",
-          "rnb": "live-music.jpg",
-          "sega": "party.jpg",
-          "zouk": "party.jpg"
-        };
-        
-        if (genreImageMap[genre]) {
-          return `${process.env.PUBLIC_URL}/images/eventz/${genreImageMap[genre]}`;
-        }
-      }
-      
-      // If event.image exists but isn't a URL, prepend PUBLIC_URL
-      if (event?.image) {
-        // Handle both with and without leading slash
-        return event.image.startsWith('/') 
-          ? `${process.env.PUBLIC_URL}${event.image}`
-          : `${process.env.PUBLIC_URL}/${event.image}`;
-      }
-      
-      // Random image based on event ID for variety if nothing else matched
-      if (event?._id) {
-        const imageOptions = ["concert.jpg", "festival.jpg", "live-music.jpg", "party.jpg"];
-        const randomIndex = event._id.charCodeAt(0) % imageOptions.length;
-        return `${process.env.PUBLIC_URL}/images/eventz/${imageOptions[randomIndex]}`;
-      }
-      
-      // Final fallback
-      return `${process.env.PUBLIC_URL}/images/eventz/concert.jpg`;
-    } catch (error) {
-      console.error("Error getting event image:", error);
-      return `${process.env.PUBLIC_URL}/images/eventz/concert.jpg`;
     }
-  };
-  
-  // Handle case where event is undefined
-  if (!event) {
-    return (
-      <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <Skeleton variant="rectangular" height={140} animation="wave" />
-        <CardContent>
-          <Skeleton variant="text" height={40} />
-          <Skeleton variant="text" />
-          <Skeleton variant="text" />
-          <Skeleton variant="rectangular" width="100%" height={36} sx={{ mt: 2 }} />
-        </CardContent>
-      </Card>
-    );
-  }
-  
-  const imageUrl = getEventImage(event);
+
+    setImageUrl(imgUrl);
+  }, [event]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -150,65 +80,96 @@ const EventCard = ({ event }) => {
     }
   };
 
-  // Format date once to avoid repeated processing
+  if (!event) {
+    return (
+      <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Skeleton variant="rectangular" height={140} animation="wave" />
+        <CardContent>
+          <Skeleton variant="text" height={40} />
+          <Skeleton variant="text" />
+          <Skeleton variant="text" />
+          <Skeleton variant="rectangular" width="100%" height={36} sx={{ mt: 2 }} />
+        </CardContent>
+      </Card>
+    );
+  }
+
   const formattedDate = new Date(event.date).toLocaleDateString();
   const formattedDateTime = new Date(event.date).toLocaleString();
 
   return (
     <>
-      <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        {/* Show skeleton while image loads */}
+      <Card sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        height: "100%",
+        transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-5px)",
+          boxShadow: 5
+        }
+      }}>
         {!imageLoaded && (
           <Skeleton variant="rectangular" height={140} animation="wave" />
         )}
-        <CardMedia
-          component="img"
-          height="140"
-          image={imageUrl}
-          alt={event.title}
-          sx={{ display: imageLoaded ? "block" : "none", objectFit: "cover" }}
-          onLoad={() => setImageLoaded(true)}
-          onError={(e) => {
-            // On error, try to load a generic event image based on type
-            console.log("Error loading image:", e.target.src);
-            const fallbackImage = event.eventType?.toLowerCase().includes("concert") 
-              ? "concert.jpg" 
-              : "festival.jpg";
-            e.target.src = `${process.env.PUBLIC_URL}/images/eventz/${fallbackImage}`;
-          }}
-          loading="lazy" // Use native lazy loading
-        />
+        {imageUrl && (
+          <CardMedia
+            component="img"
+            height={140}
+            width="100%"
+            image={imageUrl}
+            alt={event.title}
+            sx={{ 
+              display: imageLoaded ? "block" : "none", 
+              objectFit: "cover",
+              objectPosition: "center"
+            }}
+            onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              setImageLoaded(false);
+            }}
+            loading="eager"
+          />
+        )}
         <CardContent sx={{ flexGrow: 1 }}>
-          <Typography gutterBottom variant="h6" component="div">
+          <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 600 }}>
             {event.title}
           </Typography>
           <Box display="flex" alignItems="center" mb={1}>
-            <EventIcon fontSize="small" sx={{ mr: 1 }} />
+            <EventIcon fontSize="small" sx={{ mr: 1, color: "primary.main" }} />
             <Typography variant="body2" color="text.secondary">
               {formattedDate}
             </Typography>
           </Box>
           <Box display="flex" alignItems="center" mb={1}>
-            <MusicNoteIcon fontSize="small" sx={{ mr: 1 }} />
+            <MusicNoteIcon fontSize="small" sx={{ mr: 1, color: "secondary.main" }} />
             <Typography variant="body2" color="text.secondary">
               {event.eventType}
             </Typography>
           </Box>
           <Box display="flex" alignItems="center">
-            <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+            <LocationOnIcon fontSize="small" sx={{ mr: 1, color: "error.main" }} />
             <Typography variant="body2" color="text.secondary" noWrap>
               {event.address}
             </Typography>
           </Box>
         </CardContent>
-        <Box sx={{ p: 2 }}>
-          <Button variant="contained" fullWidth onClick={handleClickOpen}>
+        <Box sx={{ p: 2, pt: 0 }}>
+          <Button 
+            variant="contained" 
+            fullWidth 
+            onClick={handleClickOpen}
+            sx={{
+              textTransform: "none", 
+              fontWeight: 500,
+              borderRadius: 2
+            }}>
             More Info
           </Button>
         </Box>
       </Card>
 
-      {/* Only render Dialog when open to save resources */}
       {open && (
         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
           <DialogTitle>
@@ -222,38 +183,23 @@ const EventCard = ({ event }) => {
           </DialogTitle>
           <DialogContent dividers>
             <Typography gutterBottom>
-              <EventIcon
-                fontSize="small"
-                sx={{ mr: 1, verticalAlign: "middle" }}
-              />
+              <EventIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
               Date: {formattedDateTime}
             </Typography>
             <Typography gutterBottom>
-              <MusicNoteIcon
-                fontSize="small"
-                sx={{ mr: 1, verticalAlign: "middle" }}
-              />
+              <MusicNoteIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
               Event Type: {event.eventType}
             </Typography>
             <Typography gutterBottom>
-              <MusicNoteIcon
-                fontSize="small"
-                sx={{ mr: 1, verticalAlign: "middle" }}
-              />
+              <MusicNoteIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
               Music Genre: {event.musicGenre}
             </Typography>
             <Typography gutterBottom>
-              <LocationOnIcon
-                fontSize="small"
-                sx={{ mr: 1, verticalAlign: "middle" }}
-              />
+              <LocationOnIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
               Address: {event.address}
             </Typography>
             <Typography gutterBottom>
-              <AttachMoneyIcon
-                fontSize="small"
-                sx={{ mr: 1, verticalAlign: "middle" }}
-              />
+              <AttachMoneyIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
               Price: {event.ticketPrice} {event.currency}
             </Typography>
             <Typography gutterBottom>
@@ -288,4 +234,4 @@ const EventCard = ({ event }) => {
   );
 };
 
-export default memo(EventCard);
+export default EventCard;

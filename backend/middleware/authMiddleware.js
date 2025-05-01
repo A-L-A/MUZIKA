@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Artist from "../models/Artist.js";
-import { Event } from "../models/Event.js"; // Named import for Event
+import { Event } from "../models/Event.js"; 
 
 export const auth = async function (req, res, next) {
   const token = req.header("x-auth-token") || req.header("Authorization");

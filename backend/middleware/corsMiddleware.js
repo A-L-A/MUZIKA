@@ -1,0 +1,33 @@
+// corsMiddleware.js
+export const corsMiddleware = (req, res, next) => {
+    // List of allowed origins for CORS
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://localhost',
+      'https://localhost:3000',
+    ];
+  
+    // Get the origin from request headers
+    const origin = req.headers.origin;
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      // For requests without origin header or unknown origins
+      res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+    }
+    
+    // Set other CORS headers
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    
+    next();
+  };

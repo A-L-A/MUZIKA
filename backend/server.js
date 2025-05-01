@@ -1,7 +1,7 @@
 import express from "express";
-import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { corsMiddleware } from "./middleware/corsMiddleware.js"; // Import the custom CORS middleware
 import adminSetupRouter from "./controllers/adminController.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -14,14 +14,8 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
-  })
-);
+// Apply our custom CORS middleware
+app.use(corsMiddleware);
 
 // Middleware
 app.use(express.json());
@@ -44,7 +38,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to MUZIKA API" });
 });
 
-// Routes
+// Routes - using API pattern prefix
 app.use("/api/admin-setup", adminSetupRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -55,7 +49,7 @@ app.use("/api/event-hosts", eventHostRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack); 
+  console.error("Server error:", err.stack); 
   res.status(err.status || 500).json({
     error: {
       message: err.message || "Internal Server Error",
@@ -65,4 +59,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`CORS configuration: Using custom middleware`);
+  console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+});

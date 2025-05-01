@@ -12,6 +12,7 @@ import {
   CircularProgress,
   Button,
   useTheme,
+  Alert,
 } from "@mui/material";
 import EventMap from "../components/Eventss/EventMap";
 import EventsCatalogue from "../components/Eventss/EventsCatalogue";
@@ -36,24 +37,53 @@ const Events = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
+        
+        // Fetch events from API
         const response = await getEvents();
-        const data = response.data.map((event) => ({
-          ...event,
-          location: event.location || {
-            type: "Point",
-            coordinates: [0, 0], // Default coordinates if location is not available
-          },
-        }));
-        setEvents(data);
-        setFilteredEvents(data);
+        console.log("Events API response:", response);
+        
+        // Check if we have events data
+        if (response && (Array.isArray(response) || (Array.isArray(response.data)))) {
+          // Normalize the data
+          const eventsData = Array.isArray(response) ? response : response.data;
+          
+          // Add default coordinates if missing
+          const eventsWithCoordinates = eventsData.map((event) => ({
+            ...event,
+            coordinates: event.coordinates || {
+              type: "Point",
+              coordinates: [0, 0], // Default coordinates if missing
+            },
+          }));
+          
+          setEvents(eventsWithCoordinates);
+          setFilteredEvents(eventsWithCoordinates);
+          setError(null);
+        } else {
+          console.error("Invalid events data format:", response);
+          setError("No events found. Please try again later.");
+          setEvents([]);
+          setFilteredEvents([]);
+        }
       } catch (error) {
         console.error("Error fetching events:", error);
-        setError("Failed to load events. Please try again later.");
+        
+        // Provide specific error messages
+        if (error.response) {
+          setError(`Error: ${error.response.status} - ${error.response.data?.message || 'Failed to load events'}`);
+        } else if (error.request) {
+          setError("Network error: Unable to connect to the server.");
+        } else {
+          setError("Error loading events. Please try again later.");
+        }
+        
+        setEvents([]);
+        setFilteredEvents([]);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchEvents();
   }, []);
 
@@ -61,19 +91,20 @@ const Events = () => {
     if (events.length > 0) {
       const filtered = events.filter(
         (event) =>
+          // Date filter
           (dateFilter
             ? new Date(event.date).toDateString() ===
               new Date(dateFilter).toDateString()
             : true) &&
+          // Event type filter
           (eventTypeFilter ? event.eventType === eventTypeFilter : true) &&
+          // Search term filter (title, artists, address)
           (searchTerm
-            ? event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (event.artist?.name || "")
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
-              (event.venue?.name || "")
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
+            ? event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (event.artistsNames || []).some(name => 
+                name?.toLowerCase().includes(searchTerm.toLowerCase())
+              ) ||
+              (event.address || "").toLowerCase().includes(searchTerm.toLowerCase())
             : true)
       );
       setFilteredEvents(filtered);
@@ -107,22 +138,29 @@ const Events = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
-        <CircularProgress />
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6" sx={{ mt: 2 }}>Loading events...</Typography>
       </Container>
     );
   }
 
-  if (error) {
-    return (
-      <Container maxWidth="lg">
-        <Typography color="error">{error}</Typography>
-      </Container>
-    );
-  }
+  const availableEventTypes = ["Concert", "Festival", "Karaoke", "Live Music", "Open Mic", "Party"];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {events.length === 0 && !error && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          No events found. Create a new event to get started.
+        </Alert>
+      )}
+
       <Box
         sx={{
           bgcolor: theme.palette.background.paper,
@@ -130,10 +168,12 @@ const Events = () => {
           px: 2,
           borderRadius: 2,
           mb: 4,
+          boxShadow: 1,
         }}>
-        <Typography variant="h2" component="h1" gutterBottom align="center">
+        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ pb: 3 }}>
           Events
         </Typography>
+
         <Button
           variant="contained"
           color="secondary"
@@ -169,42 +209,45 @@ const Events = () => {
                 onChange={(e) => setEventTypeFilter(e.target.value)}
                 label="Event Type">
                 <MenuItem value="">All</MenuItem>
-                <MenuItem value="Concert">Concert</MenuItem>
-                <MenuItem value="Festival">Festival</MenuItem>
-                <MenuItem value="Karaoke">Karaoke</MenuItem>
-                <MenuItem value="Live Music">Live Music</MenuItem>
-                <MenuItem value="Open Mic">Open Mic</MenuItem>
-                <MenuItem value="Party">Party</MenuItem>
+                {availableEventTypes.map(type => (
+                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
         </Grid>
       </Box>
 
-      <Box
-        sx={{
-          bgcolor: theme.palette.background.default,
-          py: 4,
-          px: 2,
-          borderRadius: 2,
-          mb: 4,
-        }}>
-        <EventMap
-          events={filteredEvents}
-          userLocation={userLocation}
-          onLocationSelect={handleLocationSelect}
-        />
-      </Box>
+      {events.length > 0 && (
+        <>
+          <Box
+            sx={{
+              bgcolor: theme.palette.background.default,
+              py: 4,
+              px: 2,
+              borderRadius: 2,
+              mb: 4,
+              boxShadow: 1,
+            }}>
+            <EventMap
+              events={filteredEvents}
+              userLocation={userLocation}
+              onLocationSelect={handleLocationSelect}
+            />
+          </Box>
 
-      <Box
-        sx={{
-          bgcolor: theme.palette.background.paper,
-          py: 4,
-          px: 2,
-          borderRadius: 2,
-        }}>
-        <EventsCatalogue events={filteredEvents} />
-      </Box>
+          <Box
+            sx={{
+              bgcolor: theme.palette.background.paper,
+              py: 4,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+            }}>
+            <EventsCatalogue events={filteredEvents} />
+          </Box>
+        </>
+      )}
 
       {["admin", "eventHost", "artist"].includes(user?.userType) && (
         <Button
