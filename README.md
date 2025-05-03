@@ -87,71 +87,6 @@ npm install
 
 5. Visit `http://localhost:3000` to see the application running
 
-## Project Structure
-
-### Frontend
-
-```
-frontend/
-├── public/             # Static files
-├── src/
-│   ├── assets/         # Images and other assets
-│   ├── components/     # Reusable UI components
-│   │   ├── Admin/      # Admin dashboard components
-│   │   ├── Artists/    # Artist-related components
-│   │   ├── Auth/       # Authentication components
-│   │   ├── Eventss/    # Event-related components
-│   │   ├── Home/       # Home page components
-│   │   └── Layout/     # Layout components (navbar, footer)
-│   ├── context/        # React Context for state management
-│   ├── pages/          # Main application pages
-│   ├── services/       # API service functions
-│   ├── styles/         # Global styles and theme settings
-│   ├── utils/          # Utility functions
-│   ├── App.js          # Main application component
-│   └── index.js        # Entry point
-└── package.json        # Dependencies and scripts
-```
-
-### Backend
-
-```
-backend/
-├── controllers/        # Route controllers
-├── middleware/         # Custom middleware
-├── models/             # Mongoose data models
-├── routes/             # API route definitions
-├── utils/              # Utility functions
-├── index.js            # Server entry point
-└── package.json        # Dependencies and scripts
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/signup` - Register new user
-- `POST /api/auth/login` - Login
-- `POST /api/auth/google` - Google OAuth login
-
-### Users
-- `GET /api/users/profile` - Get current user profile
-- `PUT /api/users/profile` - Update user profile
-- `DELETE /api/users/profile` - Delete user profile
-
-### Artists
-- `GET /api/artists` - Get all artists
-- `POST /api/artists` - Create artist profile
-- `GET /api/artists/:id` - Get artist by ID
-- `PUT /api/artists/:id` - Update artist profile
-- `DELETE /api/artists/:id` - Delete artist profile
-
-### Events
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create new event
-- `GET /api/events/:id` - Get event by ID
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
-- `GET /api/events/user` - Get events by current user
 
 ## Contributing
 
@@ -160,6 +95,12 @@ backend/
 3. Commit your changes: `git commit -m 'Add some new feature'`
 4. Push to the branch: `git push origin feature/new-feature`
 5. Open a Pull Request
+
+## Project Status
+
+Muzika is currently in active development. The Google authentication flow is being refined and tests are being implemented. The main functionality of the site is operational, but some authentication features are still being optimized.
+
+For local development, please use email/password authentication until Google auth is fully stable.
 
 ## Acknowledgments
 
