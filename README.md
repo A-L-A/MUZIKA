@@ -20,7 +20,6 @@ MUZIKA is a modern web application connecting fans with East African musicians a
 - Material UI
 - Leaflet (maps)
 - Context API for state management
-- React Router for navigation
 
 ### Backend
 - Node.js
