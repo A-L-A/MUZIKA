@@ -10,14 +10,12 @@ import eventRoutes from "./routes/eventRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import eventHostRoutes from "./routes/eventHostRoutes.js";
 
+// Initialisation and setup
+
 dotenv.config();
 
 const app = express();
-
-// Apply our custom CORS middleware
 app.use(corsMiddleware);
-
-// Middleware
 app.use(express.json());
 
 // Connect to MongoDB
@@ -38,7 +36,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to MUZIKA API" });
 });
 
-// Routes - using API pattern prefix
+// Routes 
 app.use("/api/admin-setup", adminSetupRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -62,5 +60,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`CORS configuration: Using custom middleware`);
-  console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+  console.log(`Frontend URL: ${process.env.FRONTEND_URL}`);
 });
