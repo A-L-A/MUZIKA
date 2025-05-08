@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { corsMiddleware } from "./middleware/corsMiddleware.js"; // Import the custom CORS middleware
+import { corsMiddleware } from "./middleware/corsMiddleware.js"; 
 import adminSetupRouter from "./controllers/adminController.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
