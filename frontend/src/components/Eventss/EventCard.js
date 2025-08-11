@@ -31,13 +31,12 @@ const EventCard = ({ event }) => {
 
     let imgUrl = '';
 
-    // First try to use the event's image if provided
     if (event.image) {
       imgUrl = event.image.startsWith('/') 
         ? `${process.env.PUBLIC_URL}${event.image}`
         : `${process.env.PUBLIC_URL}/${event.image}`;
     } 
-    // Otherwise try to match by event type
+   
     else if (event.eventType) {
       const type = event.eventType.toLowerCase().replace(/\s+/g, '-');
       const eventTypeImageMap = {

@@ -1,4 +1,3 @@
-// src/utils/imagePreloader.js
 import { useEffect } from 'react';
 
 const COMMON_IMAGES = [
@@ -35,10 +34,8 @@ const ImagePreloader = () => {
       });
     };
 
-    // Preload on component mount
     preloadImages();
-
-    // Also preload when window loads (as backup)
+    
     window.addEventListener('load', preloadImages);
 
     return () => {

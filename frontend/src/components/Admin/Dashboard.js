@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Container, Typography, Box, Tabs, Tab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import UserManagement from "./UserManagement";
 import ArtistManagement from "./ArtistManagement";

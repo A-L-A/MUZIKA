@@ -37,17 +37,13 @@ const Events = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        
-        // Fetch events from API
+      
         const response = await getEvents();
         console.log("Events API response:", response);
         
-        // Check if we have events data
         if (response && (Array.isArray(response) || (Array.isArray(response.data)))) {
-          // Normalize the data
           const eventsData = Array.isArray(response) ? response : response.data;
-          
-          // Add default coordinates if missing
+
           const eventsWithCoordinates = eventsData.map((event) => ({
             ...event,
             coordinates: event.coordinates || {
@@ -67,8 +63,7 @@ const Events = () => {
         }
       } catch (error) {
         console.error("Error fetching events:", error);
-        
-        // Provide specific error messages
+   
         if (error.response) {
           setError(`Error: ${error.response.status} - ${error.response.data?.message || 'Failed to load events'}`);
         } else if (error.request) {
@@ -91,14 +86,12 @@ const Events = () => {
     if (events.length > 0) {
       const filtered = events.filter(
         (event) =>
-          // Date filter
           (dateFilter
             ? new Date(event.date).toDateString() ===
               new Date(dateFilter).toDateString()
             : true) &&
           // Event type filter
           (eventTypeFilter ? event.eventType === eventTypeFilter : true) &&
-          // Search term filter (title, artists, address)
           (searchTerm
             ? event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               (event.artistsNames || []).some(name => 

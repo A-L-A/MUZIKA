@@ -18,13 +18,11 @@ const Home = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Try to fetch both events and artists concurrently
       const [eventsResponse, artistsResponse] = await Promise.allSettled([
         getEvents(),
         getArtists()
       ]);
 
-      // Handle events data
       if (eventsResponse.status === 'fulfilled') {
         const eventsData = eventsResponse.value;
         const normalizedEvents = Array.isArray(eventsData) ? eventsData : 
@@ -36,7 +34,6 @@ const Home = () => {
         setEvents([]);
       }
 
-      // Handle artists data
       if (artistsResponse.status === 'fulfilled') {
         const artistsData = artistsResponse.value;
         const normalizedArtists = Array.isArray(artistsData) ? artistsData : 

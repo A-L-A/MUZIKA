@@ -40,7 +40,6 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
     });
   }, []);
 
-  // Use useCallback for event handlers
   const handleAddressSearch = useCallback(async () => {
     if (!mapInstanceRef.current || !address) return;
 
@@ -112,23 +111,18 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
     };
   }, []);
 
-  // Update markers when events change
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-
-    // Clear existing markers
     mapInstanceRef.current.eachLayer((layer) => {
       if (layer instanceof L.Marker) {
         mapInstanceRef.current.removeLayer(layer);
       }
     });
 
-    // Add markers for each event
     events.forEach((event) => {
       if (event.coordinates && event.coordinates.coordinates) {
         const [longitude, latitude] = event.coordinates.coordinates;
 
-        // Create popup content
         const popupContent = `
           <div style="font-family: Arial, sans-serif; max-width: 200px;">
             <h3 style="margin-bottom: 10px;">${event.title}</h3>
@@ -154,15 +148,12 @@ const EventMap = ({ events, userLocation, onLocationSelect }) => {
             </div>
           </div>
         `;
-
-        // Create and add marker using the memoized customIcon
         L.marker([latitude, longitude], { icon: customIcon })
           .addTo(mapInstanceRef.current)
           .bindPopup(popupContent);
       }
     });
 
-    // Add user location marker if available
     if (userLocation) {
       L.marker([userLocation.lat, userLocation.lng])
         .addTo(mapInstanceRef.current)

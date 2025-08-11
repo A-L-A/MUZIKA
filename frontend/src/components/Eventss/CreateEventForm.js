@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   TextField,
   Button,
@@ -21,9 +21,6 @@ import axios from "axios";
 
 const OPENCAGE_API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY;
 
-/**
- * Constants for form options and configuration
- */
 const EVENT_TYPES = [
   "Open Mic",
   "Karaoke",
@@ -50,10 +47,6 @@ const MUSIC_GENRES = [
   "Other",
 ];
 
-/**
- * CreateEventForm Component
- * Provides a form for creating new events with geocoding via OpenCage API
- */
 const CreateEventForm = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -80,39 +73,31 @@ const CreateEventForm = () => {
   const debounceTimerRef = useRef(null);
   const geocodeCacheRef = useRef({});
 
-  // Handle form field changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Debounced address lookup with caching
   const handleAddressChange = useCallback(async (event, newValue) => {
     setFormData((prevData) => ({ ...prevData, address: newValue }));
 
-    // Don't perform search for short inputs
     if (!newValue || newValue.length < 3) {
       setAddressSuggestions([]);
       return;
     }
 
-    // Clear previous timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Check cache first
     const cacheKey = `address_${newValue.toLowerCase()}`;
     if (geocodeCacheRef.current[cacheKey]) {
       setAddressSuggestions(geocodeCacheRef.current[cacheKey]);
       return;
     }
-
-    // Debounce API call to prevent excessive requests
     debounceTimerRef.current = setTimeout(async () => {
       try {
         setLoading(true);
 
-        // Use OpenCage API for address suggestions
         const response = await axios.get(
           `https://api.opencagedata.com/geocode/v1/json`,
           {
@@ -128,11 +113,8 @@ const CreateEventForm = () => {
           const suggestions = response.data.results.map(
             (result) => result.formatted
           );
-
-          // Store in cache
-          geocodeCacheRef.current[cacheKey] = suggestions;
-
-          // Update state with suggestions
+        geocodeCacheRef.current[cacheKey] = suggestions;
+        
           setAddressSuggestions(suggestions);
         }
       } catch (error) {
@@ -146,7 +128,7 @@ const CreateEventForm = () => {
       } finally {
         setLoading(false);
       }
-    }, 500); // 500ms debounce
+    }, 500); 
   }, []);
 
   const handleSubmit = async (e) => {
@@ -154,7 +136,6 @@ const CreateEventForm = () => {
     setLoading(true);
 
     try {
-      // Validate required fields
       const requiredFields = [
         "title",
         "date",
@@ -177,10 +158,8 @@ const CreateEventForm = () => {
       const cacheKey = `geocode_${formData.address}`;
 
       if (geocodeCacheRef.current[cacheKey]) {
-        // Use cached coordinates
         coordinates = geocodeCacheRef.current[cacheKey];
       } else {
-        // Geocode the address using OpenCage API
         const response = await axios.get(
           `https://api.opencagedata.com/geocode/v1/json`,
           {
@@ -207,28 +186,18 @@ const CreateEventForm = () => {
           type: "Point",
           coordinates: [parseFloat(lng), parseFloat(lat)],
         };
-
-        // Cache the coordinates
         geocodeCacheRef.current[cacheKey] = coordinates;
       }
-
-      // Use event type to generate default image path
       const eventType = formData.eventType.toLowerCase().replace(/\s+/g, "-");
       const defaultImagePath = `${process.env.PUBLIC_URL}/images/eventz/${eventType}.jpg`;
-
-      // Prepare event data
       const eventData = {
         ...formData,
-        // Use provided image or default based on event type
         image: formData.image || defaultImagePath,
         coordinates: coordinates,
         artist: user.userType === "artist" ? user._id : formData.artist,
         eventHost: user.userType === "eventHost" ? user._id : undefined,
-        // Convert ticket price to number
         ticketPrice: parseFloat(formData.ticketPrice),
       };
-
-      // Send to API
       await createEvent(eventData);
 
       setAlert({
@@ -237,7 +206,6 @@ const CreateEventForm = () => {
         severity: "success",
       });
 
-      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -263,7 +231,6 @@ const CreateEventForm = () => {
     }
   };
 
-  // Check user permission
   if (!["admin", "eventHost", "artist"].includes(user?.userType)) {
     return <Typography>You don't have permission to create events.</Typography>;
   }
@@ -439,7 +406,6 @@ const CreateEventForm = () => {
         </Grid>
       </Box>
 
-      {/* Alert notifications */}
       <Snackbar
         open={alert.open}
         autoHideDuration={6000}

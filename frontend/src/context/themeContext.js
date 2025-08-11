@@ -1,4 +1,3 @@
-// src/context/themeContext.js
 import React, { createContext, useContext, useState } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { lightTheme, darkTheme } from "../styles/theme";

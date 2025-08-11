@@ -1,4 +1,3 @@
-import React from "react";
 import { Typography, Container, Button, Box, IconButton } from "@mui/material";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";

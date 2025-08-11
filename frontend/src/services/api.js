@@ -1,9 +1,6 @@
 import axios from "axios";
 
-// Use the default URL if env variable not set
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
-
-console.log("API URL:", API_URL); // For debugging
 
 // Create axios instance
 const api = axios.create({
@@ -11,8 +8,8 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  // For browsers - include credentials
-  withCredentials: false // Set to true if your API requires cookies
+  
+  withCredentials: false 
 });
 
 // Add request interceptor for auth token
@@ -29,21 +26,18 @@ api.interceptors.request.use(
 
 // Add response interceptor for better debugging
 api.interceptors.response.use(
-  (response) => response.data, // Unwrap the data directly
+  (response) => response.data, 
   (error) => {
-    // Log detailed error info for debugging
+    
     if (error.response) {
-      // Server responded with error
       console.error("API Error:", {
         status: error.response.status,
         data: error.response.data,
         headers: error.response.headers
       });
     } else if (error.request) {
-      // Request made but no response received (network issue)
       console.error("Network Error:", error.request);
     } else {
-      // Error in setting up the request
       console.error("Request Error:", error.message);
     }
     return Promise.reject(error);
