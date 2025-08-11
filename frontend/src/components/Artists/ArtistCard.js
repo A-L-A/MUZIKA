@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -31,20 +31,16 @@ const ArtistCard = ({ artist }) => {
 
     const getUserFirstName = () => {
       const userName = artist?.user?.name || artist?.name || "";
-      return userName.split(" ")[0]?.toLowerCase();
+      return userName.split(" ")[0].toLowerCase().replace(/[-\s]/g, "");
     };
 
     const firstName = getUserFirstName();
     let imgUrl = '';
 
-    if (firstName === "jean-claude" || firstName === "jean") {
-      imgUrl = `${process.env.PUBLIC_URL}/images/artistz/jean-claude.jpg`;
-    } 
-    else if (firstName) {
-      imgUrl = `${process.env.PUBLIC_URL}/images/artistz/${firstName}.jpg`;
-    }
-    else if (artist.image) {
-      imgUrl = artist.image.startsWith('/') 
+    if (firstName) {
+      imgUrl = `${process.env.PUBLIC_URL}/images/artistz/${firstName}.webp`;
+    } else if (artist.image) {
+      imgUrl = artist.image.startsWith('/')
         ? `${process.env.PUBLIC_URL}${artist.image}`
         : `${process.env.PUBLIC_URL}/${artist.image}`;
     }
@@ -89,9 +85,9 @@ const ArtistCard = ({ artist }) => {
 
   return (
     <>
-      <Card sx={{ 
-        height: "100%", 
-        display: "flex", 
+      <Card sx={{
+        height: "100%",
+        display: "flex",
         flexDirection: "column",
         transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease",
         "&:hover": {
@@ -147,9 +143,9 @@ const ArtistCard = ({ artist }) => {
           >
             {truncateText(artist.bio)}
           </Typography>
-          <Button 
-            variant="contained" 
-            fullWidth 
+          <Button
+            variant="contained"
+            fullWidth
             onClick={() => setOpen(true)}
           >
             More Info
@@ -177,8 +173,8 @@ const ArtistCard = ({ artist }) => {
                   component="img"
                   src={imageUrl}
                   alt={getUserName()}
-                  sx={{ 
-                    width: "100%", 
+                  sx={{
+                    width: "100%",
                     height: "auto",
                     maxHeight: "300px",
                     objectFit: "cover",

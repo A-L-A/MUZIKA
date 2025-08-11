@@ -40,12 +40,12 @@ const EventCard = ({ event }) => {
     else if (event.eventType) {
       const type = event.eventType.toLowerCase().replace(/\s+/g, '-');
       const eventTypeImageMap = {
-        "concert": "concert.jpg",
-        "festival": "festival.jpg",
-        "karaoke": "karaoke.jpg",
-        "live-music": "live-music.jpg",
-        "open-mic": "open-mic.jpg",
-        "party": "party.jpg"
+        "concert": "concert.webp",
+        "festival": "festival.webp",
+        "karaoke": "karaoke.webp",
+        "live-music": "live-music.webp",
+        "open-mic": "open-mic.webp",
+        "party": "party.webp"
       };
       
       if (eventTypeImageMap[type]) {
