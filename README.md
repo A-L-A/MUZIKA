@@ -55,20 +55,8 @@ npm install
 ```
 
 3. Create environment variables
-   
-   **Backend (.env file in backend directory)**
-   ```
-   PORT=5000
-   MONGO_URL=your_mongodb_connection_string
-   JWT_SECRET=your_jwt_secret
-   FRONTEND_URL=http://localhost:3000
-   ```
 
-   **Frontend (.env file in frontend directory)**
-   ```
-   REACT_APP_API_URL=http://localhost:5000
-   REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
-   ```
+   Copy `.env.example` to `.env` in both `frontend` and `backend` directories and fill in your own credentials.
 
 4. Start development servers
 
