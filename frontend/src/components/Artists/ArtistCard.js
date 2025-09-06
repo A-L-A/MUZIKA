@@ -31,16 +31,20 @@ const ArtistCard = ({ artist }) => {
 
     const getUserFirstName = () => {
       const userName = artist?.user?.name || artist?.name || "";
-      return userName.split(" ")[0].toLowerCase().replace(/[-\s]/g, "");
+      // Take only the first "word" and remove non-alphanumeric characters
+      return userName
+        .split(" ")[0]            // first word
+        .toLowerCase()
+        .replace(/[^a-z0-9]/gi, ''); // remove special chars
     };
 
     const firstName = getUserFirstName();
     let imgUrl = '';
 
     if (firstName) {
-      imgUrl = `${process.env.PUBLIC_URL}/images/artistz/${firstName}.webp`;
+      imgUrl = `${process.env.PUBLIC_URL}/images/artistz/${firstName}.jpg`;
     } else if (artist.image) {
-      imgUrl = artist.image.startsWith('/')
+      imgUrl = artist.image.startsWith('/') 
         ? `${process.env.PUBLIC_URL}${artist.image}`
         : `${process.env.PUBLIC_URL}/${artist.image}`;
     }
