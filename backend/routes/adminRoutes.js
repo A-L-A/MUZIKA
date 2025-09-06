@@ -16,7 +16,11 @@ import {
   updateEvent,
   deleteEvent,
 } from "../controllers/eventController.js";
-
+import {
+  getAllEventHosts,
+  updateEventHost,
+  deleteEventHost,
+} from "../controllers/evenHostController.js"; 
 const router = express.Router();
 
 // User routes
@@ -34,5 +38,11 @@ router.delete("/artists/:id", auth, isAdmin, deleteArtist);
 router.get("/events", auth, isAdmin, getAllEvents);
 router.put("/events/:id", auth, isAdmin, updateEvent);
 router.delete("/events/:id", auth, isAdmin, deleteEvent);
+
+// Event Host routes 
+router.get("/event-hosts", auth, isAdmin, getAllEventHosts);
+router.put("/event-hosts/:id", auth, isAdmin, updateEventHost);
+router.delete("/event-hosts/:id", auth, isAdmin, deleteEventHost);
+
 
 export default router;

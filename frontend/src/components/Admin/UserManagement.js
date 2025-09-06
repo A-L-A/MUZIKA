@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,52 +7,100 @@ import {
   TableRow,
   Paper,
   Button,
+  IconButton,
+  Box,
+  Chip,
 } from "@mui/material";
-import * as api from "../../services/api";
+import { Edit, Delete, Refresh } from "@mui/icons-material";
 
-const UserManagement = ({ onDelete }) => {
-  const [users, setUsers] = useState([]);
+const UserManagement = ({ users = [], onDelete, onUpdate, onRefresh }) => {
+  const safeUsers = Array.isArray(users) ? users : [];
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await api.getAllUsers();
-        setUsers(response.data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
+  const handleDeleteClick = (user, type) => {
+    if (user.userType === "admin") {
+      alert("Admin accounts cannot be deleted for security reasons.");
+      return;
+    }
+    onDelete(user, type);
+  };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>User Type</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user._id}>
-              <TableCell>{user.name}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.userType}</TableCell>
-              <TableCell>
-                <Button color="error" onClick={() => onDelete(user, "user")}>
-                  Delete
-                </Button>
-              </TableCell>
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}>
+        <Button variant="outlined" startIcon={<Refresh />} onClick={onRefresh}>
+          Refresh Data
+        </Button>
+        <Chip
+          label={`Total Users: ${safeUsers.length}`}
+          color="primary"
+          variant="outlined"
+        />
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>User Type</TableCell>
+              <TableCell>Country</TableCell>
+              <TableCell align="center">Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {safeUsers.map((user) => (
+              <TableRow key={user._id}>
+                <TableCell>{user.name || "N/A"}</TableCell>
+                <TableCell>{user.email || "N/A"}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={user.userType || "N/A"}
+                    color={user.userType === "admin" ? "primary" : "default"}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>{user.country || "N/A"}</TableCell>
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    onClick={() => onUpdate(user, "user")}
+                    title="Edit User">
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color={user.userType === "admin" ? "default" : "error"}
+                    onClick={() => handleDeleteClick(user, "user")}
+                    disabled={user.userType === "admin"}
+                    title={
+                      user.userType === "admin"
+                        ? "Admin accounts cannot be deleted"
+                        : "Delete User"
+                    }
+                    sx={{
+                      opacity: user.userType === "admin" ? 0.5 : 1,
+                      "&:hover": {
+                        backgroundColor:
+                          user.userType === "admin"
+                            ? "transparent"
+                            : "error.light",
+                      },
+                    }}>
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

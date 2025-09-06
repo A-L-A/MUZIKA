@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * Event Schema
- * Defines data structure for music events
- */
 const EventSchema = new mongoose.Schema(
   {
     title: {
@@ -93,9 +89,9 @@ const EventSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
-); // Add timestamps for createdAt and updatedAt
+);
 
-// Add geospatial index for location-based queries
+// Add geospatial index
 EventSchema.index({ coordinates: "2dsphere" });
 
 // Virtual for event URL

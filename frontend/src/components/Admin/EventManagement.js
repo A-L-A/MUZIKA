@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -7,54 +6,100 @@ import {
   TableHead,
   TableRow,
   Paper,
+  IconButton,
+  Box,
+  Chip,
   Button,
+  Typography,
 } from "@mui/material";
-import * as api from "../../services/api";
+import { Edit, Delete, Refresh } from "@mui/icons-material";
 
-const EventManagement = ({ onDelete }) => {
-  const [events, setEvents] = useState([]);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await api.getAllEvents();
-        setEvents(response.data);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      }
-    };
-    fetchEvents();
-  }, []);
+const EventManagement = ({ events = [], onDelete, onUpdate, onRefresh }) => {
+  const safeEvents = Array.isArray(events) ? events : [];
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Title</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Event Type</TableCell>
-            <TableCell>Artist</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {events.map((event) => (
-            <TableRow key={event._id}>
-              <TableCell>{event.title}</TableCell>
-              <TableCell>{new Date(event.date).toLocaleString()}</TableCell>
-              <TableCell>{event.eventType}</TableCell>
-              <TableCell>{event.artist?.name || "Unknown"}</TableCell>
-              <TableCell>
-                <Button onClick={() => onDelete(event, "event")} color="error">
-                  Delete
-                </Button>
-              </TableCell>
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}>
+        <Button variant="outlined" startIcon={<Refresh />} onClick={onRefresh}>
+          Refresh Data
+        </Button>
+        <Chip
+          label={`Total Events: ${safeEvents.length}`}
+          color="info"
+          variant="outlined"
+        />
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Title</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Event Type</TableCell>
+              <TableCell>Music Genre</TableCell>
+              <TableCell>Ticket Price</TableCell>
+              <TableCell align="center">Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {safeEvents.map((event) => (
+              <TableRow key={event._id}>
+                <TableCell>
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    {event.title || "Untitled Event"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  {event.date
+                    ? new Date(event.date).toLocaleDateString()
+                    : "N/A"}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={event.eventType || "N/A"}
+                    color="primary"
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={event.musicGenre || "N/A"}
+                    color="secondary"
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  {event.ticketPrice
+                    ? `${event.ticketPrice} ${event.currency || ""}`
+                    : "Free"}
+                </TableCell>
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    onClick={() => onUpdate(event, "event")}
+                    title="Edit Event">
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => onDelete(event, "event")}
+                    title="Delete Event">
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

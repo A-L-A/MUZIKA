@@ -28,6 +28,7 @@ import { useAuth } from "../context/AuthContext";
 import ThemeToggleButton from "../components/Layout/ThemeToggleButton";
 import * as api from "../services/api";
 import EventCard from "../components/Eventss/EventCard";
+import CreateEventForm from "../components/Eventss/CreateEventForm"; // Keep this import
 
 const Profile = () => {
   const { user, setUser, logout } = useAuth();
@@ -35,6 +36,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [userEvents, setUserEvents] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
   const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
   const [openImageConfirmDialog, setOpenImageConfirmDialog] = useState(false);
@@ -283,6 +285,7 @@ const Profile = () => {
         sx={{ mt: 2 }}>
         <Tab label="Profile Details" />
         <Tab label="My Events" />
+        <Grid container spacing={2}></Grid>
       </Tabs>
 
       {activeTab === 0 && (
@@ -450,14 +453,44 @@ const Profile = () => {
       )}
 
       {activeTab === 1 && (
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          {Array.isArray(userEvents) &&
-            userEvents.map((event) => (
-              <Grid item xs={12} sm={6} md={4} key={event._id}>
-                <EventCard event={event} onDelete={fetchUserEvents} />
-              </Grid>
-            ))}
-        </Grid>
+        <Box sx={{ mt: 2 }}>
+          {/* Render user events */}
+          <Grid container spacing={2}>
+            {Array.isArray(userEvents) && userEvents.length > 0 ? (
+              userEvents.map((event) => (
+                <Grid item xs={12} sm={6} md={4} key={event._id}>
+                  <EventCard event={event} onDelete={fetchUserEvents} />
+                </Grid>
+              ))
+            ) : (
+              <Typography variant="body1" sx={{ mt: 2 }}>
+                No events found. Create your first event!
+              </Typography>
+            )}
+          </Grid>
+
+          {/* Create Event Button and Form */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            sx={{ mt: 3 }}>
+            {showCreateForm ? "Hide Create Event Form" : "Create New Event"}
+          </Button>
+
+          {/* Render CreateEventForm when showCreateForm is true */}
+          {showCreateForm && (
+            <Box sx={{ mt: 3 }}>
+              <CreateEventForm
+                onEventCreated={() => {
+                  setShowCreateForm(false);
+                  fetchUserEvents(); // Refresh the events list
+                }}
+                onCancel={() => setShowCreateForm(false)}
+              />
+            </Box>
+          )}
+        </Box>
       )}
 
       <Button

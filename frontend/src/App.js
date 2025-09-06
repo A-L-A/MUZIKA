@@ -10,10 +10,10 @@ import Home from "./pages/Home";
 import Artists from "./pages/Artists";
 import Events from "./pages/Events";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Unauthorized from "./components/Auth/Unauthorised";
 import AdminDashboard from "./components/Admin/Dashboard";
 import Profile from "./pages/Profile";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import ImagePreloader from "./utils/ImagePreloader"; 
 
 function AppContent() {
@@ -26,7 +26,7 @@ function AppContent() {
   return (
     <Router>
       <ImagePreloader />
-      
+
       <Box
         sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Navbar />
@@ -43,6 +43,7 @@ function AppContent() {
             <Route path="/artists" element={<Artists />} />
             <Route path="/events" element={<Events />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route
               path="/profile"
               element={
@@ -70,14 +71,12 @@ function AppContent() {
 function App() {
   return (
     <Container maxWidth={false} disableGutters>
-      <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
         <ThemeProviderComponent>
           <CssBaseline />
           <AuthProvider>
             <AppContent />
           </AuthProvider>
         </ThemeProviderComponent>
-      </GoogleOAuthProvider>
     </Container>
   );
 }
