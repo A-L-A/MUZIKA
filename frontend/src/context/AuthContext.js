@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import * as api from "../services/api";
 import setAuthToken from "../utils/setAuthToken";
 
@@ -26,31 +26,28 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+
   const login = async (email, password) => {
     try {
+      console.log("Attempting login with:", { email });
       const res = await api.login(email, password);
-      localStorage.setItem("token", res.data.token);
-      setAuthToken(res.data.token);
-      setUser(res.data.user);
-      return res.data.user;
+      console.log("API response:", res); 
+
+      if (!res || !res.token) {
+        throw new Error("Invalid response from server");
+      }
+
+      localStorage.setItem("token", res.token);
+      setAuthToken(res.token);
+      const userData = res.user || res; 
+      console.log("Setting user:", userData);
+      setUser(userData);
+
+      return userData;
     } catch (err) {
+      console.error("Login error details:", err);
       throw new Error(
         err.response?.data?.msg || "An error occurred during login."
-      );
-    }
-  };
-
-  const googleLogin = async (tokenId) => {
-    try {
-      const response = await api.googleLogin({ tokenId });
-      const { isNewUser, token, user } = response.data;
-      localStorage.setItem("token", token);
-      setUser(user);
-      return { isNewUser, user };
-    } catch (error) {
-      console.error("Google login error:", error);
-      throw new Error(
-        error.response?.data?.msg || "An error occurred during Google login"
       );
     }
   };
@@ -58,10 +55,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const res = await api.register(userData);
-      localStorage.setItem("token", res.data.token);
-      setAuthToken(res.data.token);
-      setUser(res.data.user);
-      return res.data.user;
+      localStorage.setItem("token", res.token);
+      setAuthToken(res.token);
+      setUser(res.user);
+      return res.user;
     } catch (err) {
       if (err.response && err.response.status === 409) {
         throw new Error(
@@ -87,7 +84,6 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
-    googleLogin,
     logout,
     loadUser,
   };

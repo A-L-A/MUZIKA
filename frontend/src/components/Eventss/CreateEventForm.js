@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState } from "react";
 import {
   TextField,
   Button,
@@ -8,18 +8,13 @@ import {
   InputLabel,
   Box,
   Typography,
-  Autocomplete,
-  CircularProgress,
-  Paper,
   Grid,
   Snackbar,
   Alert,
+  Paper,
 } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { createEvent } from "../../services/api";
-import axios from "axios";
-
-const OPENCAGE_API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY;
 
 const EVENT_TYPES = [
   "Open Mic",
@@ -57,79 +52,21 @@ const CreateEventForm = () => {
     musicGenre: "",
     otherMusicGenre: "",
     ticketPrice: "",
-    currency: "",
+    currency: "USD", 
     address: "",
-    artist: "",
     image: "",
   });
 
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({
     open: false,
     message: "",
     severity: "info",
   });
-  const debounceTimerRef = useRef(null);
-  const geocodeCacheRef = useRef({});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const handleAddressChange = useCallback(async (event, newValue) => {
-    setFormData((prevData) => ({ ...prevData, address: newValue }));
-
-    if (!newValue || newValue.length < 3) {
-      setAddressSuggestions([]);
-      return;
-    }
-
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    const cacheKey = `address_${newValue.toLowerCase()}`;
-    if (geocodeCacheRef.current[cacheKey]) {
-      setAddressSuggestions(geocodeCacheRef.current[cacheKey]);
-      return;
-    }
-    debounceTimerRef.current = setTimeout(async () => {
-      try {
-        setLoading(true);
-
-        const response = await axios.get(
-          `https://api.opencagedata.com/geocode/v1/json`,
-          {
-            params: {
-              q: newValue,
-              key: OPENCAGE_API_KEY,
-              limit: 5,
-            },
-          }
-        );
-
-        if (response.data && response.data.results) {
-          const suggestions = response.data.results.map(
-            (result) => result.formatted
-          );
-        geocodeCacheRef.current[cacheKey] = suggestions;
-        
-          setAddressSuggestions(suggestions);
-        }
-      } catch (error) {
-        console.error("Error fetching address suggestions:", error);
-        setAlert({
-          open: true,
-          message:
-            "Failed to fetch address suggestions. Please try typing a more specific address.",
-          severity: "warning",
-        });
-      } finally {
-        setLoading(false);
-      }
-    }, 500); 
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -145,6 +82,7 @@ const CreateEventForm = () => {
         "currency",
         "address",
       ];
+
       for (const field of requiredFields) {
         if (!formData[field]) {
           throw new Error(
@@ -153,59 +91,32 @@ const CreateEventForm = () => {
         }
       }
 
-      // Get coordinates for the address using OpenCage API
-      let coordinates;
-      const cacheKey = `geocode_${formData.address}`;
+      const coordinates = {
+        type: "Point",
+        coordinates: [0, 0], 
+      };
 
-      if (geocodeCacheRef.current[cacheKey]) {
-        coordinates = geocodeCacheRef.current[cacheKey];
-      } else {
-        const response = await axios.get(
-          `https://api.opencagedata.com/geocode/v1/json`,
-          {
-            params: {
-              q: formData.address,
-              key: OPENCAGE_API_KEY,
-              limit: 1,
-            },
-          }
-        );
-
-        if (
-          !response.data ||
-          !response.data.results ||
-          response.data.results.length === 0
-        ) {
-          throw new Error(
-            "Invalid address. Please select a valid address from the suggestions."
-          );
-        }
-
-        const { lng, lat } = response.data.results[0].geometry;
-        coordinates = {
-          type: "Point",
-          coordinates: [parseFloat(lng), parseFloat(lat)],
-        };
-        geocodeCacheRef.current[cacheKey] = coordinates;
-      }
       const eventType = formData.eventType.toLowerCase().replace(/\s+/g, "-");
-      const defaultImagePath = `${process.env.PUBLIC_URL}/images/eventz/${eventType}.jpg`;
+      const defaultImagePath = `/images/eventz/${eventType}.jpg`;
+
       const eventData = {
         ...formData,
         image: formData.image || defaultImagePath,
         coordinates: coordinates,
-        artist: user.userType === "artist" ? user._id : formData.artist,
-        eventHost: user.userType === "eventHost" ? user._id : undefined,
         ticketPrice: parseFloat(formData.ticketPrice),
+        // This will automatically link the event to the creator
+        eventHost: user._id,
       };
+
       await createEvent(eventData);
 
       setAlert({
         open: true,
-        message: "Event created successfully!",
+        message: "Event created successfully! It will appear in your profile.",
         severity: "success",
       });
 
+      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -214,9 +125,8 @@ const CreateEventForm = () => {
         musicGenre: "",
         otherMusicGenre: "",
         ticketPrice: "",
-        currency: "",
+        currency: "USD",
         address: "",
-        artist: "",
         image: "",
       });
     } catch (error) {
@@ -232,7 +142,13 @@ const CreateEventForm = () => {
   };
 
   if (!["admin", "eventHost", "artist"].includes(user?.userType)) {
-    return <Typography>You don't have permission to create events.</Typography>;
+    return (
+      <Paper elevation={3} sx={{ p: 4, mt: 3 }}>
+        <Typography variant="h6" color="error">
+          You don't have permission to create events.
+        </Typography>
+      </Paper>
+    );
   }
 
   return (
@@ -270,19 +186,19 @@ const CreateEventForm = () => {
               name="description"
               label="Event Description"
               multiline
-              rows={4}
+              rows={3}
               value={formData.description}
               onChange={handleChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel>Event Type</InputLabel>
               <Select
                 name="eventType"
                 value={formData.eventType}
                 onChange={handleChange}
-                required>
+                label="Event Type">
                 {EVENT_TYPES.map((type) => (
                   <MenuItem key={type} value={type}>
                     {type}
@@ -292,13 +208,13 @@ const CreateEventForm = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel>Music Genre</InputLabel>
               <Select
                 name="musicGenre"
                 value={formData.musicGenre}
                 onChange={handleChange}
-                required>
+                label="Music Genre">
                 {MUSIC_GENRES.map((genre) => (
                   <MenuItem key={genre} value={genre}>
                     {genre}
@@ -331,66 +247,43 @@ const CreateEventForm = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Currency</InputLabel>
+              <Select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                label="Currency">
+                <MenuItem value="USD">USD ($)</MenuItem>
+                <MenuItem value="EUR">EUR (€)</MenuItem>
+                <MenuItem value="GBP">GBP (£)</MenuItem>
+                <MenuItem value="RWF">RWF (RWF)</MenuItem>
+                <MenuItem value="KES">KES (KSh)</MenuItem>
+                <MenuItem value="UGX">UGX (USh)</MenuItem>
+                <MenuItem value="TZS">TZS (TSh)</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
             <TextField
               fullWidth
-              name="currency"
-              label="Currency"
-              value={formData.currency}
+              name="address"
+              label="Event Address"
+              value={formData.address}
               onChange={handleChange}
               required
+              placeholder="Enter the full event address"
             />
           </Grid>
           <Grid item xs={12}>
-            <Autocomplete
-              freeSolo
-              options={addressSuggestions}
-              onInputChange={handleAddressChange}
-              value={formData.address}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  name="address"
-                  label="Event Address"
-                  required
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {loading ? (
-                          <CircularProgress color="inherit" size={20} />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-          </Grid>
-          {user.userType === "admin" && (
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="artist"
-                label="Artist Name"
-                value={formData.artist}
-                onChange={handleChange}
-              />
-            </Grid>
-          )}
-          <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Image URL (Optional - a default image will be used based on event
-              type)
-            </Typography>
             <TextField
               fullWidth
               name="image"
-              label="Event Image URL"
+              label="Event Image URL (Optional)"
               value={formData.image}
               onChange={handleChange}
               placeholder="https://example.com/image.jpg"
+              helperText="Leave blank to use a default image based on event type"
             />
           </Grid>
           <Grid item xs={12}>
@@ -400,7 +293,7 @@ const CreateEventForm = () => {
               variant="contained"
               disabled={loading}
               sx={{ mt: 2 }}>
-              {loading ? <CircularProgress size={24} /> : "Create Event"}
+              {loading ? "Creating Event..." : "Create Event"}
             </Button>
           </Grid>
         </Grid>
@@ -409,8 +302,7 @@ const CreateEventForm = () => {
       <Snackbar
         open={alert.open}
         autoHideDuration={6000}
-        onClose={() => setAlert({ ...alert, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        onClose={() => setAlert({ ...alert, open: false })}>
         <Alert
           onClose={() => setAlert({ ...alert, open: false })}
           severity={alert.severity}

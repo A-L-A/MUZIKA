@@ -16,12 +16,9 @@ import {
 } from "@mui/material";
 import EventMap from "../components/Eventss/EventMap";
 import EventsCatalogue from "../components/Eventss/EventsCatalogue";
-import CreateEventForm from "../components/Eventss/CreateEventForm";
 import { getEvents } from "../services/api";
-import { useAuth } from "../context/AuthContext";
 
 const Events = () => {
-  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [dateFilter, setDateFilter] = useState("");
@@ -29,7 +26,7 @@ const Events = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+
   const [userLocation, setUserLocation] = useState(null);
   const theme = useTheme();
 
@@ -37,11 +34,13 @@ const Events = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-      
+
         const response = await getEvents();
-        console.log("Events API response:", response);
-        
-        if (response && (Array.isArray(response) || (Array.isArray(response.data)))) {
+
+        if (
+          response &&
+          (Array.isArray(response) || Array.isArray(response.data))
+        ) {
           const eventsData = Array.isArray(response) ? response : response.data;
 
           const eventsWithCoordinates = eventsData.map((event) => ({
@@ -51,7 +50,7 @@ const Events = () => {
               coordinates: [0, 0], // Default coordinates if missing
             },
           }));
-          
+
           setEvents(eventsWithCoordinates);
           setFilteredEvents(eventsWithCoordinates);
           setError(null);
@@ -63,22 +62,26 @@ const Events = () => {
         }
       } catch (error) {
         console.error("Error fetching events:", error);
-   
+
         if (error.response) {
-          setError(`Error: ${error.response.status} - ${error.response.data?.message || 'Failed to load events'}`);
+          setError(
+            `Error: ${error.response.status} - ${
+              error.response.data?.message || "Failed to load events"
+            }`
+          );
         } else if (error.request) {
           setError("Network error: Unable to connect to the server.");
         } else {
           setError("Error loading events. Please try again later.");
         }
-        
+
         setEvents([]);
         setFilteredEvents([]);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchEvents();
   }, []);
 
@@ -94,10 +97,12 @@ const Events = () => {
           (eventTypeFilter ? event.eventType === eventTypeFilter : true) &&
           (searchTerm
             ? event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (event.artistsNames || []).some(name => 
+              (event.artistsNames || []).some((name) =>
                 name?.toLowerCase().includes(searchTerm.toLowerCase())
               ) ||
-              (event.address || "").toLowerCase().includes(searchTerm.toLowerCase())
+              (event.address || "")
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
             : true)
       );
       setFilteredEvents(filtered);
@@ -131,14 +136,23 @@ const Events = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: "center" }}>
         <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ mt: 2 }}>Loading events...</Typography>
+        <Typography variant="h6" sx={{ mt: 2 }}>
+          Loading events...
+        </Typography>
       </Container>
     );
   }
 
-  const availableEventTypes = ["Concert", "Festival", "Karaoke", "Live Music", "Open Mic", "Party"];
+  const availableEventTypes = [
+    "Concert",
+    "Festival",
+    "Karaoke",
+    "Live Music",
+    "Open Mic",
+    "Party",
+  ];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -147,7 +161,7 @@ const Events = () => {
           {error}
         </Alert>
       )}
-      
+
       {events.length === 0 && !error && (
         <Alert severity="info" sx={{ mb: 3 }}>
           No events found. Create a new event to get started.
@@ -163,7 +177,12 @@ const Events = () => {
           mb: 4,
           boxShadow: 1,
         }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ pb: 3 }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          align="center"
+          sx={{ pb: 3 }}>
           Events
         </Typography>
 
@@ -202,8 +221,10 @@ const Events = () => {
                 onChange={(e) => setEventTypeFilter(e.target.value)}
                 label="Event Type">
                 <MenuItem value="">All</MenuItem>
-                {availableEventTypes.map(type => (
-                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                {availableEventTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -241,17 +262,6 @@ const Events = () => {
           </Box>
         </>
       )}
-
-      {["admin", "eventHost", "artist"].includes(user?.userType) && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          sx={{ mt: 3 }}>
-          {showCreateForm ? "Hide Create Event Form" : "Create New Event"}
-        </Button>
-      )}
-      {showCreateForm && <CreateEventForm />}
     </Container>
   );
 };
