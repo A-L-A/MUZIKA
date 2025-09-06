@@ -1,47 +1,31 @@
 import { createTheme } from "@mui/material/styles";
 
-/**
- * Common theme settings 
- */
 const commonSettings = {
   typography: {
     fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
-    fontSize: 16, 
+    fontSize: 16,
     h1: {
-      fontSize: "2.5rem", 
+      fontSize: "2.5rem",
       fontWeight: 700,
-      "@media (min-width:600px)": {
-        fontSize: "3rem", 
-      },
+      "@media (min-width:600px)": { fontSize: "3rem" },
     },
     h2: {
-      fontSize: "2rem", 
+      fontSize: "2rem",
       fontWeight: 600,
-      "@media (min-width:600px)": {
-        fontSize: "2.5rem", 
-      },
+      "@media (min-width:600px)": { fontSize: "2.5rem" },
     },
     h3: {
-      fontSize: "1.8rem", 
-      "@media (min-width:600px)": {
-        fontSize: "2.2rem", 
-      },
+      fontSize: "1.8rem",
+      "@media (min-width:600px)": { fontSize: "2.2rem" },
     },
-    h4: {
-      fontSize: "1.5rem",
-      fontWeight: 600,
-    },
+    h4: { fontSize: "1.5rem", fontWeight: 600 },
     body1: {
-      fontSize: "1rem", 
-      "@media (min-width:600px)": {
-        fontSize: "1.1rem", 
-      },
+      fontSize: "1rem",
+      "@media (min-width:600px)": { fontSize: "1.1rem" },
     },
     body2: {
-      fontSize: "0.875rem", 
-      "@media (min-width:600px)": {
-        fontSize: "0.95rem", 
-      },
+      fontSize: "0.875rem",
+      "@media (min-width:600px)": { fontSize: "0.95rem" },
     },
   },
   components: {
@@ -51,8 +35,8 @@ const commonSettings = {
           borderRadius: "8px",
           textTransform: "none",
           fontWeight: 600,
-          fontSize: "0.95rem", 
-          padding: "8px 16px",
+          fontSize: "0.95rem",
+          padding: "8px 0px",
         },
       },
     },
@@ -72,9 +56,7 @@ const commonSettings = {
     },
     MuiAppBar: {
       styleOverrides: {
-        root: {
-          backgroundColor: "#8B4513",
-        },
+        root: { backgroundColor: "#8B4513" },
       },
     },
     MuiCssBaseline: {
@@ -84,6 +66,16 @@ const commonSettings = {
           margin: 0;
           padding: 0;
           box-sizing: border-box;
+        }
+        html, body, #root {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          width: 100%;
+          overflow-x: hidden;
+        }
+        main {
+          padding: 0 !important; /* Remove unwanted 16px */
         }
         body {
           font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
@@ -104,39 +96,23 @@ const commonSettings = {
   },
 };
 
-// Light theme
 const lightTheme = createTheme({
   ...commonSettings,
   palette: {
     mode: "light",
-    primary: {
-      main: "#8B4513", // Brown
-    },
-    secondary: {
-      main: "#FFFFFF", // White
-    },
-    background: {
-      default: "#F5F5F5",
-      paper: "#FFFFFF",
-    },
+    primary: { main: "#8B4513" },
+    secondary: { main: "#FFFFFF" },
+    background: { default: "#F5F5F5", paper: "#FFFFFF" },
   },
 });
 
-// Dark theme
 const darkTheme = createTheme({
   ...commonSettings,
   palette: {
     mode: "dark",
-    primary: {
-      main: "#8B4513", // Brown
-    },
-    secondary: {
-      main: "#FFFFFF", // White
-    },
-    background: {
-      default: "#303030",
-      paper: "#424242",
-    },
+    primary: { main: "#8B4513" },
+    secondary: { main: "#FFFFFF" },
+    background: { default: "#303030", paper: "#424242" },
   },
 });
 
