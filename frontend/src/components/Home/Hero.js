@@ -8,55 +8,25 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const heroImages = [
-  {
-    url: "/images/backgroundz/hero-background-1.webp",
-    link: "/",
-  },
-  {
-    url: "/images/backgroundz/hero-background-2.webp",
-    link: "/",
-  },
-  {
-    url: "/images/backgroundz/hero-background-3.webp",
-    link: "/",
-  },
+  { url: "/images/backgroundz/hero-background-1.webp", link: "/" },
+  { url: "/images/backgroundz/hero-background-2.webp", link: "/" },
 ];
 
-const NextArrow = (props) => {
-  const { onClick } = props;
-  return (
-    <IconButton
-      onClick={onClick}
-      sx={{
-        position: "absolute",
-        top: "50%",
-        right: "20px",
-        zIndex: 1,
-        color: "white",
-      }}
-    >
-      <ArrowForwardIosIcon />
-    </IconButton>
-  );
-};
-
-const PrevArrow = (props) => {
-  const { onClick } = props;
-  return (
-    <IconButton
-      onClick={onClick}
-      sx={{
-        position: "absolute",
-        top: "50%",
-        left: "20px",
-        zIndex: 1,
-        color: "white",
-      }}
-    >
-      <ArrowBackIosIcon />
-    </IconButton>
-  );
-};
+// Reusable arrow component
+const ArrowButton = ({ onClick, direction }) => (
+  <IconButton
+    onClick={onClick}
+    sx={{
+      position: "absolute",
+      top: "50%",
+      [direction === "left" ? "left" : "right"]: "20px",
+      zIndex: 1,
+      color: "white",
+      transform: "translateY(-50%)",
+    }}>
+    {direction === "left" ? <ArrowBackIosIcon /> : <ArrowForwardIosIcon />}
+  </IconButton>
+);
 
 const Hero = () => {
   const settings = {
@@ -67,8 +37,8 @@ const Hero = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 5000,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
+    nextArrow: <ArrowButton direction="right" />,
+    prevArrow: <ArrowButton direction="left" />,
     lazyLoad: "ondemand",
   };
 
@@ -84,21 +54,23 @@ const Hero = () => {
         />
       </Helmet>
 
-
       <Box
         sx={{
           position: "relative",
-          height: "calc(100vh - 64px)",
-          width: "100vw",
+          height: "100vh",
+          width: "100%",
           margin: 0,
           padding: 0,
           overflow: "hidden",
-        }}
-      >
+        }}>
         <Slider {...settings}>
           {heroImages.map((image, index) => (
-            <div key={index} style={{ position: "relative", height: "calc(100vh - 64px)", width: "100vw" }}>
-              <Link to={image.link} style={{ display: "block", height: "100%", width: "100%" }}>
+            <div
+              key={index}
+              style={{ position: "relative", height: "100vh", width: "100%" }}>
+              <Link
+                to={image.link}
+                style={{ display: "block", height: "100%", width: "100%" }}>
                 <img
                   src={image.url}
                   alt={`Hero slide ${index + 1}`}
@@ -107,7 +79,7 @@ const Hero = () => {
                     height: "100%",
                     width: "100%",
                     objectFit: "cover",
-                    filter: "brightness(0.7)", 
+                    filter: "brightness(0.7)",
                     transition: "filter 0.3s ease-in-out",
                   }}
                   onLoad={(e) => {
@@ -119,7 +91,7 @@ const Hero = () => {
           ))}
         </Slider>
 
-
+        {/* Overlay text */}
         <Box
           sx={{
             position: "absolute",
@@ -128,11 +100,9 @@ const Hero = () => {
             transform: "translate(-50%, -50%)",
             textAlign: "center",
             width: "100%",
-            padding: 0,
-            margin: 0,
-          }}
-        >
-          <Container maxWidth="sm" sx={{ padding: 0 }}>
+            px: 2,
+          }}>
+          <Container>
             <Typography
               component="h1"
               variant="h2"
@@ -143,38 +113,50 @@ const Hero = () => {
                 color: "white",
                 textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
                 WebkitTextStroke: "2px black",
-                margin: 0,
-              }}
-            >
-              Locate & Attend East Africa's best music events!
+              }}>
+              Locate & Attend East Africa&apos;s best music events!
             </Typography>
-            <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+            <Box
+              sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
               <Button
                 variant="contained"
                 component={Link}
                 to="/events"
                 sx={{
-                  mr: 2,
-                  bgcolor: "primary.main",
-                  "&:hover": { bgcolor: "primary.dark" },
-                }}
-              >
+                  px: 4,
+                  py: 1.5,
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  borderRadius: "30px",
+                  background: "linear-gradient(90deg, #8B4513, #5C2E0C)",
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.3)",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #A0522D, #3E1E08)",
+                    boxShadow: "0px 6px 14px rgba(0,0,0,0.4)",
+                  },
+                }}>
                 Explore Events
               </Button>
+
               <Button
                 variant="outlined"
                 component={Link}
                 to="/artists"
                 sx={{
+                  px: 4,
+                  py: 1.5,
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  borderRadius: "30px",
                   color: "white",
                   borderColor: "white",
+                  backdropFilter: "blur(2px)",
                   "&:hover": {
                     borderColor: "primary.light",
                     color: "primary.light",
-                    WebkitTextStroke: "2px black",
+                    backgroundColor: "rgba(0,0,0,0.3)",
                   },
-                }}
-              >
+                }}>
                 Discover Artists
               </Button>
             </Box>
