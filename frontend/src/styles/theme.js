@@ -36,7 +36,7 @@ const commonSettings = {
           textTransform: "none",
           fontWeight: 600,
           fontSize: "0.95rem",
-          padding: "8px 0px",
+          padding: "px 0px",
         },
       },
     },
@@ -75,7 +75,7 @@ const commonSettings = {
           overflow-x: hidden;
         }
         main {
-          padding: 0 !important; /* Remove unwanted 16px */
+          padding: 0 !important;
         }
         body {
           font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',

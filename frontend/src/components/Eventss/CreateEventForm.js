@@ -12,6 +12,7 @@ import {
   Snackbar,
   Alert,
   Paper,
+  Autocomplete,
 } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { createEvent } from "../../services/api";
@@ -24,7 +25,6 @@ const EVENT_TYPES = [
   "Party",
   "Live Music",
 ];
-
 const MUSIC_GENRES = [
   "Afrobeats",
   "Afropop",
@@ -44,6 +44,8 @@ const MUSIC_GENRES = [
 
 const CreateEventForm = () => {
   const { user } = useAuth();
+
+  // Form state
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -52,27 +54,60 @@ const CreateEventForm = () => {
     musicGenre: "",
     otherMusicGenre: "",
     ticketPrice: "",
-    currency: "USD", 
+    currency: "USD",
     address: "",
-    image: "",
+    latitude: "",
+    longitude: "",
+    imageFile: null,
   });
 
   const [loading, setLoading] = useState(false);
+
+  // Alert state
   const [alert, setAlert] = useState({
     open: false,
     message: "",
     severity: "info",
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // Address autocomplete state
+  const [setAddressInput] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
+  const handleAddressInputChange = async (event, value) => {
+    setAddressInput(value);
+    if (value.length > 2) {
+      try {
+        const response = await fetch(
+          `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+            value
+          )}&key=YOUR_REAL_API_KEY&limit=5`
+        );
+        const data = await response.json();
+        if (data.results) {
+          setAddressSuggestions(
+            data.results.map((r) => ({
+              formatted: r.formatted,
+              lat: r.geometry.lat,
+              lng: r.geometry.lng,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching address suggestions:", err);
+      }
+    }
   };
+
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
+      // Validate required fields
       const requiredFields = [
         "title",
         "date",
@@ -82,41 +117,37 @@ const CreateEventForm = () => {
         "currency",
         "address",
       ];
-
       for (const field of requiredFields) {
-        if (!formData[field]) {
+        if (!formData[field])
           throw new Error(
             `${field.charAt(0).toUpperCase() + field.slice(1)} is required`
           );
-        }
       }
 
-      const coordinates = {
-        type: "Point",
-        coordinates: [0, 0], 
-      };
+      if (!selectedAddress)
+        throw new Error("Please select a valid address from the suggestions");
 
-      const eventType = formData.eventType.toLowerCase().replace(/\s+/g, "-");
-      const defaultImagePath = `/images/eventz/${eventType}.jpg`;
+      // Prepare FormData for image upload
+      const data = new FormData();
+      data.append("address", selectedAddress.formatted);
+      data.append("latitude", selectedAddress.lat);
+      data.append("longitude", selectedAddress.lng);
 
-      const eventData = {
-        ...formData,
-        image: formData.image || defaultImagePath,
-        coordinates: coordinates,
-        ticketPrice: parseFloat(formData.ticketPrice),
-        // This will automatically link the event to the creator
-        eventHost: user._id,
-      };
+      for (const key in formData) {
+        if (key === "imageFile" && formData.imageFile)
+          data.append("image", formData.imageFile);
+        else if (!["latitude", "longitude", "imageFile"].includes(key))
+          data.append(key, formData[key]);
+      }
 
-      await createEvent(eventData);
+      await createEvent(data);
 
       setAlert({
         open: true,
-        message: "Event created successfully! It will appear in your profile.",
+        message: "Event created successfully!",
         severity: "success",
       });
 
-      // Reset form
       setFormData({
         title: "",
         description: "",
@@ -127,8 +158,11 @@ const CreateEventForm = () => {
         ticketPrice: "",
         currency: "USD",
         address: "",
-        image: "",
+        latitude: "",
+        longitude: "",
+        imageFile: null,
       });
+      setSelectedAddress(null);
     } catch (error) {
       console.error("Error creating event:", error);
       setAlert({
@@ -265,40 +299,53 @@ const CreateEventForm = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              name="address"
-              label="Event Address"
-              value={formData.address}
-              onChange={handleChange}
-              required
-              placeholder="Enter the full event address"
+            <Autocomplete
+              freeSolo
+              options={addressSuggestions}
+              getOptionLabel={(option) => option.formatted || ""}
+              onInputChange={handleAddressInputChange}
+              onChange={(event, value) => setSelectedAddress(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Event Address"
+                  variant="outlined"
+                  required
+                  fullWidth
+                />
+              )}
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              name="image"
-              label="Event Image URL (Optional)"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              helperText="Leave blank to use a default image based on event type"
+            <input
+              accept="image/*"
+              id="event-image-upload"
+              type="file"
+              style={{ display: "none" }}
+              onChange={(e) =>
+                setFormData({ ...formData, imageFile: e.target.files[0] })
+              }
             />
+            <label htmlFor="event-image-upload">
+              <Button variant="contained" component="span">
+                Upload Event Image
+              </Button>
+            </label>
+            {formData.imageFile && (
+              <Typography>{formData.imageFile.name}</Typography>
+            )}
           </Grid>
           <Grid item xs={12}>
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              disabled={loading}
-              sx={{ mt: 2 }}>
+              disabled={loading}>
               {loading ? "Creating Event..." : "Create Event"}
             </Button>
           </Grid>
         </Grid>
       </Box>
-
       <Snackbar
         open={alert.open}
         autoHideDuration={6000}

@@ -27,7 +27,7 @@ const EventManagement = ({ events = [], onDelete, onUpdate, onRefresh }) => {
           mb: 2,
         }}>
         <Button variant="outlined" startIcon={<Refresh />} onClick={onRefresh}>
-          Refresh Data
+          Refresh
         </Button>
         <Chip
           label={`Total Events: ${safeEvents.length}`}
