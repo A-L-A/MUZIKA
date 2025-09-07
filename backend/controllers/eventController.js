@@ -1,24 +1,20 @@
-import axios from "axios";
 import { Event } from "../models/Event.js";
 import User from "../models/User.js";
+import axios from "axios";
 
 const OPENCAGE_API_KEY = process.env.OPENCAGE_API_KEY;
 
+// Get coordinates from OpenCage API
 const getCoordinates = async (address) => {
   try {
     const response = await axios.get(
-      `https://api.opencagedata.com/geocode/v1/json`,
+      "https://api.opencagedata.com/geocode/v1/json",
       {
-        params: {
-          q: address,
-          key: OPENCAGE_API_KEY,
-          limit: 1,
-        },
+        params: { q: address, key: OPENCAGE_API_KEY, limit: 1 },
       }
     );
-
     if (response.data?.results?.length > 0) {
-      const { lng, lat } = response.data.results[0].geometry;
+      const { lat, lng } = response.data.results[0].geometry;
       return [lng, lat];
     }
   } catch (error) {
@@ -27,9 +23,9 @@ const getCoordinates = async (address) => {
   return null;
 };
 
+// Default image selection based on event type
 const getEventImageFilename = (eventType) => {
   if (!eventType) return "default-event.jpg";
-
   const type = eventType.toLowerCase().replace(/\s+/g, "-");
   const validTypes = [
     "concert",
@@ -39,10 +35,10 @@ const getEventImageFilename = (eventType) => {
     "open-mic",
     "party",
   ];
-
   return validTypes.includes(type) ? `${type}.jpg` : "default-event.jpg";
 };
 
+// Create event
 export const createEvent = async (req, res) => {
   try {
     const {
@@ -56,10 +52,8 @@ export const createEvent = async (req, res) => {
       otherMusicGenre,
       ticketPrice,
       currency,
-      image,
     } = req.body;
 
-    // Validate required fields
     if (
       !title ||
       !date ||
@@ -68,44 +62,35 @@ export const createEvent = async (req, res) => {
       !musicGenre ||
       !ticketPrice ||
       !currency
-    ) {
+    )
       return res
         .status(400)
         .json({ msg: "All required fields must be provided" });
-    }
 
-    // Get coordinates
     const coordinates = await getCoordinates(address);
-    if (!coordinates) {
+    if (!coordinates)
       return res
         .status(400)
         .json({ msg: "Unable to geocode the provided address" });
-    }
 
-    // Find artists
     let artistsInDb = [];
-    if (artistsNames?.length > 0) {
+    if (artistsNames?.length > 0)
       artistsInDb = await User.find({
         name: { $in: artistsNames },
         userType: "artist",
       });
-    }
 
-    // Set image
-    const defaultImageName = getEventImageFilename(eventType);
-    const eventImage = image || defaultImageName;
+    const imagePath = req.file
+      ? `/images/eventz/${req.file.filename}`
+      : getEventImageFilename(eventType);
 
-    // Create event
     const newEvent = new Event({
       title,
       description,
       date,
       address,
-      coordinates: {
-        type: "Point",
-        coordinates: coordinates,
-      },
-      artists: artistsInDb.map((artist) => artist._id),
+      coordinates: { type: "Point", coordinates },
+      artists: artistsInDb.map((a) => a._id),
       artistsNames: artistsNames || [],
       eventHost: req.user.id,
       eventType,
@@ -113,7 +98,7 @@ export const createEvent = async (req, res) => {
       otherMusicGenre,
       ticketPrice: parseFloat(ticketPrice),
       currency,
-      image: eventImage,
+      image: imagePath,
     });
 
     const event = await newEvent.save();
@@ -128,6 +113,7 @@ export const createEvent = async (req, res) => {
   }
 };
 
+// Update event
 export const updateEvent = async (req, res) => {
   try {
     const {
@@ -141,53 +127,43 @@ export const updateEvent = async (req, res) => {
       otherMusicGenre,
       ticketPrice,
       currency,
-      image,
     } = req.body;
 
     let event = await Event.findById(req.params.id);
-    if (!event) {
-      return res.status(404).json({ msg: "Event not found" });
-    }
+    if (!event) return res.status(404).json({ msg: "Event not found" });
 
-    // Check authorization
     if (
       event.eventHost.toString() !== req.user.id &&
       req.user.userType !== "admin"
-    ) {
+    )
       return res
         .status(403)
         .json({ msg: "Not authorized to update this event" });
-    }
 
-    // Update coordinates if address changed
     let coordinates = event.coordinates;
     if (address && address !== event.address) {
       const newCoordinates = await getCoordinates(address);
-      if (newCoordinates) {
-        coordinates = { type: "Point", coordinates: newCoordinates };
-      } else {
+      if (!newCoordinates)
         return res
           .status(400)
           .json({ msg: "Unable to geocode the provided address" });
-      }
+      coordinates = { type: "Point", coordinates: newCoordinates };
     }
 
-    // Update artists
     let artistIds = event.artists;
     if (artistsNames?.length > 0) {
       const artistsInDb = await User.find({
         name: { $in: artistsNames },
         userType: "artist",
       });
-      artistIds = artistsInDb.map((artist) => artist._id);
+      artistIds = artistsInDb.map((a) => a._id);
     }
 
-    // Update image
     const updatedEventType = eventType || event.eventType;
-    const defaultImageName = getEventImageFilename(updatedEventType);
-    const eventImage = image || event.image || defaultImageName;
+    const eventImage = req.file
+      ? `/images/eventz/${req.file.filename}`
+      : event.image || getEventImageFilename(updatedEventType);
 
-    // Update event
     const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
       {
@@ -221,6 +197,7 @@ export const updateEvent = async (req, res) => {
   }
 };
 
+// Get all events
 export const getAllEvents = async (req, res) => {
   try {
     const events = await Event.find()
@@ -234,16 +211,13 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
+// Get event by ID
 export const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
       .populate("artists", "name email")
       .populate("eventHost", "name email");
-
-    if (!event) {
-      return res.status(404).json({ msg: "Event not found" });
-    }
-
+    if (!event) return res.status(404).json({ msg: "Event not found" });
     res.json(event);
   } catch (err) {
     console.error("Error getting event by ID:", err.message);
@@ -251,6 +225,7 @@ export const getEventById = async (req, res) => {
   }
 };
 
+// Get events by current user
 export const getEventsByUser = async (req, res) => {
   try {
     const events = await Event.find({ eventHost: req.user.id })
@@ -263,21 +238,19 @@ export const getEventsByUser = async (req, res) => {
   }
 };
 
+// Delete event
 export const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-    if (!event) {
-      return res.status(404).json({ msg: "Event not found" });
-    }
+    if (!event) return res.status(404).json({ msg: "Event not found" });
 
     if (
       event.eventHost.toString() !== req.user.id &&
       req.user.userType !== "admin"
-    ) {
+    )
       return res
         .status(403)
         .json({ msg: "Not authorized to delete this event" });
-    }
 
     await Event.findByIdAndDelete(req.params.id);
     res.json({ msg: "Event removed successfully" });

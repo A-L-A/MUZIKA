@@ -5,6 +5,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  adminResetPassword,
 } from "../controllers/userController.js";
 import {
   getAllArtists,
@@ -27,6 +28,7 @@ const router = express.Router();
 router.get("/users", auth, isAdmin, getAllUsers);
 router.post("/users", auth, isAdmin, createUser);
 router.put("/users/:id", auth, isAdmin, updateUser);
+router.put("/users/:id/change-password", auth, isAdmin, adminResetPassword);
 router.delete("/users/:id", auth, isAdmin, deleteUser);
 
 // Artist routes

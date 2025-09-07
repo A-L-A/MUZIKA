@@ -242,6 +242,30 @@ export const changePassword = async (req, res) => {
 };
 
 /**
+ * Reset user password by Admin
+ * PUT /api/admin/users/:id/change-password
+ * Admin only
+ */
+export const adminResetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    let user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+    // Add this to your adminResetPassword for debugging
+    console.log("Password modified?", user.isModified("password")); // Before setting
+    user.password = password;
+    console.log("Password modified?", user.isModified("password")); // After setting
+    await user.save();
+
+    res.json({ msg: `Password reset successfully for user ${user.email}` });
+  } catch (err) {
+    console.error("Error resetting password by admin:", err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+/**
  * Delete current user profile
  * DELETE /api/users/profile
  */
